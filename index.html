@@ -1096,7 +1096,6 @@ const gameScreen    = document.getElementById('gameScreen');
 const levelScreen   = document.getElementById('levelScreen');
 const mapBody       = document.getElementById('mapBody');
 const mapContent    = document.getElementById('mapContent');
-const mapTitle      = document.getElementById('mapTitle');
 
 // ==================== 核心逻辑 ====================
 
@@ -1984,7 +1983,6 @@ function showMapView(chIdx) {
     chIdx = lv.level <= 10 ? 0 : lv.level <= 20 ? 1 : lv.level <= 30 ? 2 : 3;
   }
   const ch = CHAPTERS[chIdx];
-  mapTitle.textContent = `${ch.name} · ${ch.subtitle}`;
 
   // 计算地图尺寸
   const NODE_SPACING = 100; // px per level
@@ -2001,6 +1999,9 @@ function showMapView(chIdx) {
   svg.setAttribute('viewBox', `0 0 ${svgW} ${MAP_HEIGHT}`);
   svg.setAttribute('preserveAspectRatio', 'none');
   svg.classList.add('map-svg');
+
+  // 立即显示界面，再开始渲染内容
+  showScreen('level');
 
   // 计算每个关卡的画布坐标（从下到上：第1关在最下方）
   const positions = [];
@@ -2280,8 +2281,6 @@ function showMapView(chIdx) {
     badge.style.opacity = '0.4';
     mapContent.appendChild(badge);
   }
-
-  showScreen('level');
 
   // 滚动到最后一个通过的关卡（从下到上，最高索引为最新通关）
   requestAnimationFrame(() => {
