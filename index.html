@@ -527,33 +527,278 @@
   .chapter-card.ch3 { border-left: 4px solid #54a0ff; }
   .chapter-card.ch4 { border-left: 4px solid #a29bfe; }
 
-  .level-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 16px;
+  /* ======== 关卡地图（开心消消乐风格） ======== */
+  .map-screen {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-  }
-  .level-card {
-    background: var(--panel);
-    border-radius: 14px;
-    padding: 18px 8px;
-    text-align: center;
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.06);
-    transition: all 0.15s ease;
+    max-width: 520px;
+    height: calc(100dvh - 60px);
+    height: calc(100vh - 60px);
+    min-height: 480px;
+    max-height: 720px;
+    animation: fadeSlideIn 0.3s ease;
     position: relative;
   }
-  .level-card:hover:not(.locked) { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
-  .level-card:active:not(.locked) { transform: scale(0.95); }
-  .level-card.locked { opacity: 0.4; cursor: not-allowed; }
-  .level-card.completed { border-color: rgba(245,197,24,0.25); }
-  .level-card .lv-num { font-size: 1.4rem; font-weight: 900; color: #fff; }
-  .level-card .lv-name { font-size: 0.68rem; color: rgba(255,255,255,0.45); margin: 2px 0; }
-  .level-card .lv-stars { font-size: 0.85rem; letter-spacing: 1px; }
-  .level-card .lv-stars .s-on  { color: var(--gold); }
-  .level-card .lv-stars .s-off { color: rgba(255,255,255,0.1); }
-  .level-card .lv-target { font-size: 0.62rem; color: rgba(255,255,255,0.25); margin-top: 2px; }
-  .level-card .lv-lock-icon { position: absolute; right: 6px; top: 4px; font-size: 0.85rem; opacity: 0.5; }
+  .map-header {
+    display: flex;
+    align-items: center;
+    padding: 6px 4px 8px 0;
+    z-index: 20;
+    position: relative;
+    flex-shrink: 0;
+    gap: 4px;
+  }
+  .map-header .back-btn {
+    align-self: auto;
+    background: rgba(0,0,0,0.25);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.8);
+  }
+  .map-header .back-btn:hover { background: rgba(0,0,0,0.4); color: #fff; }
+  .map-header .map-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    flex: 1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    letter-spacing: 1px;
+  }
+
+  .map-body {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 16px;
+    border: 2px solid rgba(255,255,255,0.08);
+    min-height: 360px;
+    /* 风景背景：天空 → 远山 → 草地 */
+    background:
+      /* 草地纹理层 */
+      linear-gradient(180deg,
+        rgba(90,188,60,0) 58%,
+        rgba(80,175,50,0.4) 62%,
+        rgba(70,160,40,0.6) 70%,
+        rgba(55,140,30,0.8) 80%,
+        rgba(40,110,20,0.9) 90%,
+        rgba(30,80,15,1) 100%
+      ),
+      /* 天空渐变 */
+      linear-gradient(180deg,
+        #3a7bd5 0%,
+        #5b9ae0 18%,
+        #87CEEB 35%,
+        #b0e0e6 48%,
+        #a8dba8 56%,
+        #7ec850 65%
+      );
+  }
+
+  /* ---- 风景装饰 ---- */
+  .scenery {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+    isolation: isolate;
+  }
+  /* 云朵 */
+  .cloud {
+    position: absolute;
+    background: rgba(255,255,255,0.6);
+    border-radius: 50px;
+    filter: blur(1px);
+  }
+  .cloud.c1 {
+    width: 120px; height: 28px;
+    top: 6%; left: 8%;
+    animation: cloudDrift 18s linear infinite;
+  }
+  .cloud.c2 {
+    width: 90px; height: 22px;
+    top: 12%; right: 12%;
+    animation: cloudDrift 22s linear infinite reverse;
+  }
+  .cloud.c3 {
+    width: 70px; height: 18px;
+    top: 18%; left: 50%;
+    animation: cloudDrift 15s linear infinite;
+  }
+  @keyframes cloudDrift {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(30px); }
+    100% { transform: translateX(0); }
+  }
+  /* 远山 */
+  .mountain {
+    position: absolute;
+    bottom: 32%;
+  }
+  .mountain.m1 {
+    left: 0;
+    width: 48%;
+    height: 140px;
+    background: linear-gradient(135deg, #6b8f6e 0%, #4a7045 60%, #3a6035 100%);
+    clip-path: polygon(0% 100%, 12% 55%, 25% 35%, 38% 50%, 50% 20%, 65% 40%, 78% 15%, 90% 45%, 100% 100%);
+    opacity: 0.5;
+  }
+  .mountain.m2 {
+    right: -5%;
+    width: 55%;
+    height: 200px;
+    background: linear-gradient(135deg, #5a8060 0%, #3d6a40 50%, #2d5a30 100%);
+    clip-path: polygon(0% 100%, 20% 60%, 35% 30%, 50% 45%, 65% 20%, 80% 50%, 100% 100%);
+    opacity: 0.45;
+  }
+  .mountain.m3 {
+    left: 30%;
+    width: 30%;
+    height: 80px;
+    background: linear-gradient(135deg, #4a7a4e 0%, #2d5a30 100%);
+    clip-path: polygon(0% 100%, 50% 15%, 100% 100%);
+    opacity: 0.35;
+    bottom: 36%;
+  }
+
+  /* ---- SVG 路径 ---- */
+  .map-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* ---- 关卡节点 ---- */
+  .level-node {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .level-node:hover:not(.locked) { transform: translateY(-3px); }
+  .level-node:active:not(.locked) { transform: scale(0.92); }
+  .level-node.locked { cursor: not-allowed; opacity: 0.65; }
+  .level-node.locked:hover { transform: none; }
+
+  .node-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.2rem;
+    color: #fff;
+    position: relative;
+    background: linear-gradient(135deg, #ff6b6b, #c0392b);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.3);
+    border: 3px solid rgba(255,255,255,0.35);
+    transition: all 0.25s ease;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  /* 不同篇章不同节点颜色 */
+  .level-node.chapter-0 .node-circle { background: linear-gradient(135deg, #ff6b6b, #c0392b); }
+  .level-node.chapter-1 .node-circle { background: linear-gradient(135deg, #ff9f43, #e67e22); }
+  .level-node.chapter-2 .node-circle { background: linear-gradient(135deg, #54a0ff, #2e86de); }
+  .level-node.chapter-3 .node-circle { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+
+  .node-circle.completed {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(245,197,24,0.3), 0 4px 14px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.3);
+  }
+  .node-circle.locked {
+    background: rgba(0,0,0,0.35) !important;
+    border-color: rgba(255,255,255,0.08);
+  }
+  .node-circle.locked .node-num { opacity: 0.25; }
+
+  .node-circle .node-num { font-size: 1.2rem; }
+  .node-circle .node-lock-icon {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.95rem;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+  }
+  .node-circle .node-stars {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    display: flex;
+    gap: 1px;
+  }
+  .node-stars .s-on { color: var(--gold); text-shadow: 0 0 6px rgba(245,197,24,0.6); }
+  .node-stars .s-off { color: rgba(255,255,255,0.15); }
+
+  .node-label {
+    margin-top: 18px;
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.6);
+    font-weight: 600;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(2px);
+    padding: 2px 8px;
+    border-radius: 8px;
+  }
+  .level-node.locked .node-label { opacity: 0.4; }
+  .level-node:not(.locked) .node-label {
+    color: rgba(255,255,255,0.85);
+  }
+
+  /* ---- 篇章分隔条 ---- */
+  .chapter-divider {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    pointer-events: none;
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 2px;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    white-space: nowrap;
+  }
+  .chapter-divider.d0 { background: rgba(255,107,107,0.55); border: 1px solid rgba(255,107,107,0.25); }
+  .chapter-divider.d1 { background: rgba(254,202,87,0.55);  border: 1px solid rgba(254,202,87,0.25); }
+  .chapter-divider.d2 { background: rgba(84,160,255,0.55);  border: 1px solid rgba(84,160,255,0.25); }
+  .chapter-divider.d3 { background: rgba(162,155,254,0.55); border: 1px solid rgba(162,155,254,0.25); }
+
+  /* ---- 地图完成标记 ---- */
+  .map-complete-badge {
+    position: absolute;
+    left: 50%;
+    z-index: 4;
+    pointer-events: none;
+    transform: translateX(-50%);
+    font-size: 2.4rem;
+    text-align: center;
+    filter: drop-shadow(0 4px 12px rgba(245,197,24,0.5));
+  }
 
   .back-btn {
     align-self: flex-start;
@@ -607,14 +852,20 @@
     .game-wrapper { gap: 22px; padding: 12px; }
     .select-screen { gap: 20px; padding: 8px; }
     .chapter-list { gap: 12px; }
-    .level-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .level-card { padding: 12px 4px; border-radius: 10px; }
-    .level-card .lv-num { font-size: 1.1rem; }
     .chapter-card { padding: 16px 18px; }
     .chapter-card .ch-name { font-size: 1.05rem; }
     .info-panel { gap: 10px; }
     .info-item { padding: 8px 12px; min-width: 56px; }
     .info-item .value { font-size: 1.1rem; }
+    /* 地图响应式 */
+    .map-screen { max-width: 100%; min-height: 400px; height: calc(100vh - 40px); max-height: none; }
+    .map-body { min-height: 300px; border-radius: 12px; }
+    .node-circle { width: 42px; height: 42px; font-size: 1rem; }
+    .node-circle .node-num { font-size: 1rem; }
+    .node-circle .node-stars { font-size: 0.6rem; bottom: -13px; }
+    .node-label { font-size: 0.55rem; margin-top: 15px; padding: 1px 6px; }
+    .chapter-divider { font-size: 0.72rem; padding: 4px 14px; }
+    .map-header .map-title { font-size: 0.95rem; }
   }
 </style>
 </head>
@@ -628,12 +879,23 @@
     <div class="chapter-list" id="chapterList"></div>
   </div>
 
-  <!-- ======== 关卡选择界面 ======== -->
-  <div class="select-screen" id="levelScreen" style="display:none;">
-    <button class="back-btn" id="btnBackToChapter">← 返回篇章</button>
-    <div class="screen-title" id="levelScreenTitle">第一篇章 · 初入江湖</div>
-    <div class="screen-subtitle">选择关卡</div>
-    <div class="level-grid" id="levelGrid"></div>
+  <!-- ======== 关卡地图界面 ======== -->
+  <div class="map-screen" id="levelScreen" style="display:none;">
+    <div class="map-header">
+      <button class="back-btn" id="btnBackToChapter">← 篇章</button>
+      <div class="map-title" id="mapTitle">🗺️ 关卡地图</div>
+    </div>
+    <div class="map-body" id="mapBody">
+      <div class="scenery">
+        <div class="cloud c1"></div>
+        <div class="cloud c2"></div>
+        <div class="cloud c3"></div>
+        <div class="mountain m1"></div>
+        <div class="mountain m2"></div>
+        <div class="mountain m3"></div>
+      </div>
+      <div id="mapContent" style="position:relative;width:100%;"></div>
+    </div>
   </div>
 
   <!-- ======== 游戏界面 ======== -->
@@ -759,8 +1021,9 @@ const gameScreen    = document.getElementById('gameScreen');
 const chapterScreen = document.getElementById('chapterScreen');
 const levelScreen   = document.getElementById('levelScreen');
 const chapterList   = document.getElementById('chapterList');
-const levelGrid     = document.getElementById('levelGrid');
-const levelScreenTitle = document.getElementById('levelScreenTitle');
+const mapBody       = document.getElementById('mapBody');
+const mapContent    = document.getElementById('mapContent');
+const mapTitle      = document.getElementById('mapTitle');
 
 // ==================== 核心逻辑 ====================
 
@@ -1643,40 +1906,162 @@ function renderChapterScreen() {
       </div>
     `;
     if (unlocked) {
-      card.addEventListener('click', () => showLevelScreen(idx));
+      card.addEventListener('click', () => showMapView(idx));
     }
     chapterList.appendChild(card);
   });
 }
 
-function showLevelScreen(chIdx) {
+function showMapView(chIdx) {
+  if (chIdx === undefined) {
+    // 从当前关推断章节
+    const lv = LEVELS[currentLevel] || LEVELS[0];
+    chIdx = lv.level <= 5 ? 0 : lv.level <= 10 ? 1 : lv.level <= 15 ? 2 : 3;
+  }
   const ch = CHAPTERS[chIdx];
-  levelScreenTitle.textContent = `${ch.name} · ${ch.subtitle}`;
-  levelGrid.innerHTML = '';
-  ch.levels.forEach(li => {
-    const lv = LEVELS[li];
-    const unlocked = isLevelUnlocked(li);
-    const stars = levelStars[li];
-    const card = document.createElement('div');
-    card.className = `level-card${unlocked ? '' : ' locked'}${stars >= 1 ? ' completed' : ''}`;
-    card.innerHTML = `
-      <div class="lv-num">${lv.level}</div>
-      <div class="lv-name">${lv.name}</div>
-      <div class="lv-stars">
-        ${[1,2,3].map(s => `<span class="${s <= stars ? 's-on' : 's-off'}">★</span>`).join('')}
+  mapTitle.textContent = `${ch.name} · ${ch.subtitle}`;
+
+  // 计算地图尺寸
+  const NODE_SPACING = 100; // px per level
+  const MAP_HEIGHT = LEVELS.length * NODE_SPACING + 120;
+  const svgW = 100; // SVG viewBox width (%)
+
+  // 清空并设置容器高度
+  mapContent.innerHTML = '';
+  mapContent.style.height = MAP_HEIGHT + 'px';
+
+  // ---- 生成 SVG 路径 ----
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${svgW} ${MAP_HEIGHT}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.classList.add('map-svg');
+
+  // 计算每个关卡的画布坐标
+  const positions = [];
+  for (let i = 0; i < LEVELS.length; i++) {
+    // 左右交替：偶数右，奇数左
+    const x = i % 2 === 0 ? 78 : 22;
+    const y = 60 + i * NODE_SPACING;
+    positions.push({ x, y });
+  }
+
+  // 绘制路径 - 2条带阴影的线
+  for (const shadow of [true, false]) {
+    const pathEl = document.createElementNS(svgNS, 'path');
+    let d = '';
+    for (let i = 0; i < positions.length; i++) {
+      if (i === 0) {
+        d += `M ${positions[0].x} ${positions[0].y}`;
+      } else {
+        const prev = positions[i - 1];
+        const midX = 50;
+        const midY = (prev.y + positions[i].y) / 2;
+        d += ` Q ${midX} ${midY}, ${positions[i].x} ${positions[i].y}`;
+      }
+    }
+    pathEl.setAttribute('d', d);
+    if (shadow) {
+      pathEl.setAttribute('stroke', 'rgba(0,0,0,0.2)');
+      pathEl.setAttribute('stroke-width', '14');
+      pathEl.setAttribute('transform', 'translate(0,2)');
+      pathEl.setAttribute('fill', 'none');
+      pathEl.setAttribute('stroke-linecap', 'round');
+      pathEl.setAttribute('stroke-linejoin', 'round');
+    } else {
+      // 渐变色路径
+      pathEl.setAttribute('stroke', 'rgba(139,115,85,0.5)');
+      pathEl.setAttribute('stroke-width', '10');
+      pathEl.setAttribute('stroke-linecap', 'round');
+      pathEl.setAttribute('stroke-linejoin', 'round');
+      pathEl.setAttribute('fill', 'none');
+    }
+    svg.appendChild(pathEl);
+  }
+
+  // 彩色路径分段的渐变效果 - 用虚线叠加
+  const colorPath = document.createElementNS(svgNS, 'path');
+  let d = '';
+  for (let i = 0; i < positions.length; i++) {
+    if (i === 0) {
+      d += `M ${positions[0].x} ${positions[0].y}`;
+    } else {
+      const prev = positions[i - 1];
+      const midX = 50;
+      d += ` Q ${midX} ${(prev.y + positions[i].y) / 2}, ${positions[i].x} ${positions[i].y}`;
+    }
+  }
+  colorPath.setAttribute('d', d);
+  colorPath.setAttribute('stroke', 'rgba(255,215,0,0.15)');
+  colorPath.setAttribute('stroke-width', '6');
+  colorPath.setAttribute('stroke-linecap', 'round');
+  colorPath.setAttribute('stroke-linejoin', 'round');
+  colorPath.setAttribute('fill', 'none');
+  colorPath.setAttribute('stroke-dasharray', '8,12');
+  svg.appendChild(colorPath);
+
+  mapContent.appendChild(svg);
+
+  // ---- 添加关卡节点 ----
+  positions.forEach((pos, i) => {
+    const lv = LEVELS[i];
+    const unlocked = isLevelUnlocked(i);
+    const stars = levelStars[i];
+    const chIdx = Math.floor(i / 5);
+
+    const node = document.createElement('div');
+    node.className = `level-node ${unlocked ? '' : 'locked'} chapter-${chIdx}`;
+    node.style.left = pos.x + '%';
+    node.style.top = pos.y + 'px';
+    node.style.transform = 'translate(-50%, -50%)';
+
+    node.innerHTML = `
+      <div class="node-circle ${unlocked ? '' : 'locked'} ${stars > 0 ? 'completed' : ''}">
+        <span class="node-num">${lv.level}</span>
+        <div class="node-stars">
+          ${[1,2,3].map(s => `<span class="${s <= stars ? 's-on' : 's-off'}">★</span>`).join('')}
+        </div>
+        ${!unlocked ? '<span class="node-lock-icon">🔒</span>' : ''}
       </div>
-      <div class="lv-target">🎯 ${lv.target.toLocaleString()}</div>
-      ${unlocked ? '' : '<div class="lv-lock-icon">🔒</div>'}
+      <div class="node-label">${lv.name}</div>
     `;
+
     if (unlocked) {
-      card.addEventListener('click', () => {
-        currentLevel = li;
+      node.addEventListener('click', () => {
+        currentLevel = i;
         startLevel();
       });
     }
-    levelGrid.appendChild(card);
+
+    mapContent.appendChild(node);
   });
+
+  // ---- 添加篇章分隔条 ----
+  for (let c = 1; c < CHAPTERS.length; c++) {
+    const dividerY = c * 5 * NODE_SPACING + 45;
+    const div = document.createElement('div');
+    div.className = `chapter-divider d${c}`;
+    div.textContent = `── ${CHAPTERS[c].name} · ${CHAPTERS[c].subtitle} ──`;
+    div.style.top = dividerY + 'px';
+    mapContent.appendChild(div);
+  }
+
+  // ---- 最后一关之后的完成标记 ----
+  if (levelStars[LEVELS.length - 1] >= 1) {
+    const badge = document.createElement('div');
+    badge.className = 'map-complete-badge';
+    badge.textContent = '🏆';
+    badge.style.top = (MAP_HEIGHT - 25) + 'px';
+    mapContent.appendChild(badge);
+  }
+
   showScreen('level');
+
+  // 滚动到当前章节区域
+  requestAnimationFrame(() => {
+    const scrollTarget = chIdx * 5 * NODE_SPACING - 100;
+    mapBody.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'smooth' });
+  });
 }
 
 // ==================== 游戏流程 ====================
@@ -1727,10 +2112,10 @@ function saveProgress() {
 }
 
 function goToLevelSelect() {
-  const lv = LEVELS[currentLevel];
+  const lv = LEVELS[currentLevel] || LEVELS[0];
   const chIdx = lv.level <= 5 ? 0 : lv.level <= 10 ? 1 : lv.level <= 15 ? 2 : 3;
   renderChapterScreen();
-  showLevelScreen(chIdx);
+  showMapView(chIdx);
 }
 
 function goToChapterSelect() {
