@@ -928,7 +928,133 @@
   .btn-secondary:hover { box-shadow: 0 2px 10px rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.4); }
   .btn-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
 
+  /* ======== 封面界面 ======== */
+  .cover-screen {
+    position: fixed; inset: 0; z-index: 500;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    overflow: hidden;
+    animation: coverFadeIn 0.8s ease;
+  }
+  @keyframes coverFadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+  /* 星星粒子背景 */
+  .cover-stars {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  }
+  .cover-star {
+    position: absolute; width: 3px; height: 3px; background: #fff; border-radius: 50%;
+    animation: starTwinkle var(--dur) ease-in-out infinite;
+    opacity: 0;
+  }
+  @keyframes starTwinkle {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+  /* 标题 */
+  .cover-title {
+    font-size: 3.2rem; font-weight: 900; letter-spacing: 6px;
+    background: linear-gradient(135deg, #f5c518, #ff6b6b, #a29bfe, #54a0ff);
+    background-size: 300% 300%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: titleGradient 4s ease infinite;
+    text-shadow: none;
+    position: relative; z-index: 1;
+    filter: drop-shadow(0 0 30px rgba(245,197,24,0.3));
+  }
+  @keyframes titleGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .cover-subtitle {
+    font-size: 0.85rem; color: rgba(255,255,255,0.35); letter-spacing: 8px;
+    margin-top: -4px; position: relative; z-index: 1;
+    text-transform: uppercase;
+  }
+  /* 存档选择 */
+  .save-slots {
+    display: flex; gap: 14px; margin-top: 32px; position: relative; z-index: 1;
+  }
+  .save-slot {
+    width: 140px; padding: 16px 12px; border-radius: 16px;
+    background: rgba(255,255,255,0.06); border: 2px solid rgba(255,255,255,0.08);
+    cursor: pointer; transition: all 0.25s ease; text-align: center;
+    backdrop-filter: blur(4px);
+  }
+  .save-slot:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); }
+  .save-slot.active { border-color: var(--gold); background: rgba(245,197,24,0.1); box-shadow: 0 0 20px rgba(245,197,24,0.15); }
+  .save-slot .slot-number { font-size: 0.7rem; color: var(--gold); font-weight: 700; letter-spacing: 2px; }
+  .save-slot .slot-status { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 6px; }
+  .save-slot .slot-status.has-data { color: rgba(255,255,255,0.8); }
+  .save-slot .slot-stars { font-size: 0.65rem; color: var(--gold); margin-top: 4px; }
+  .save-slot .slot-level { font-size: 0.6rem; color: rgba(255,255,255,0.3); margin-top: 2px; }
+  .save-slot .slot-time { font-size: 0.55rem; color: rgba(255,255,255,0.2); margin-top: 4px; }
+  .save-slot .slot-new { font-size: 1.5rem; opacity: 0.3; margin-top: 6px; }
+  .save-slot .slot-delete {
+    position: absolute; top: -6px; right: -6px; width: 22px; height: 22px;
+    border-radius: 50%; background: rgba(255,80,80,0.8); border: none;
+    color: #fff; font-size: 0.65rem; cursor: pointer; display: none;
+    align-items: center; justify-content: center; line-height: 1;
+  }
+  .save-slot:hover .slot-delete { display: flex; }
+  /* 开始按钮 */
+  .cover-btn {
+    margin-top: 28px; position: relative; z-index: 1;
+    background: linear-gradient(135deg, #e94560, #c0392b);
+    border: none; color: #fff; font-size: 1.1rem; font-weight: 800;
+    padding: 14px 52px; border-radius: 30px; cursor: pointer;
+    letter-spacing: 4px; transition: all 0.25s ease;
+    box-shadow: 0 6px 20px rgba(233,68,96,0.3);
+  }
+  .cover-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 30px rgba(233,68,96,0.4); }
+  .cover-btn:active { transform: scale(0.96); }
+  .cover-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  /* BGM 按钮 */
+  .bgm-btn {
+    position: fixed; bottom: 20px; right: 20px; z-index: 600;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5); font-size: 1.2rem; cursor: pointer;
+    transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .bgm-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+  .bgm-btn.playing { color: var(--gold); border-color: rgba(245,197,24,0.3); }
+
+  /* ======== 加载界面 ======== */
+  .loading-screen {
+    position: fixed; inset: 0; z-index: 400;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    animation: coverFadeIn 0.3s ease;
+  }
+  .loading-screen .loading-title {
+    font-size: 2rem; font-weight: 800; color: rgba(255,255,255,0.8);
+    letter-spacing: 4px; margin-bottom: 40px;
+  }
+  .loading-bar-track {
+    width: 280px; height: 6px; background: rgba(255,255,255,0.08);
+    border-radius: 3px; overflow: hidden;
+  }
+  .loading-bar-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #e94560, #f5c518);
+    border-radius: 3px; transition: width 0.3s ease;
+  }
+  .loading-text {
+    margin-top: 16px; font-size: 0.8rem; color: rgba(255,255,255,0.3);
+    letter-spacing: 2px;
+  }
+
   @media (max-width: 480px) {
+    .cover-title { font-size: 2.4rem; letter-spacing: 4px; }
+    .cover-subtitle { font-size: 0.7rem; letter-spacing: 4px; }
+    .save-slots { gap: 10px; }
+    .save-slot { width: 110px; padding: 12px 8px; }
+    .save-slot .slot-number { font-size: 0.6rem; }
+    .save-slot .slot-status { font-size: 0.7rem; }
+    .cover-btn { font-size: 1rem; padding: 12px 36px; }
+    .bgm-btn { bottom: 12px; right: 12px; width: 38px; height: 38px; font-size: 1rem; }
     :root { --cell-size: 38px; --gap: 2px; }
     .board { padding: 6px; border-radius: 12px; }
     .cell { border-radius: 8px; font-size: 1.15rem; }
@@ -978,6 +1104,38 @@
 </style>
 </head>
 <body>
+
+<!-- ======== 封面界面 ======== -->
+<div class="cover-screen" id="coverScreen">
+  <div class="cover-stars" id="coverStars"></div>
+  <div class="cover-title">超 级 消 除</div>
+  <div class="cover-subtitle">Super Match</div>
+  <div class="save-slots" id="saveSlots">
+    <div class="save-slot" data-slot="0" onclick="selectSave(0)">
+      <div class="slot-number">📁 存档 1</div>
+      <div class="slot-status" id="slotStatus0">—</div>
+    </div>
+    <div class="save-slot" data-slot="1" onclick="selectSave(1)">
+      <div class="slot-number">📁 存档 2</div>
+      <div class="slot-status" id="slotStatus1">—</div>
+    </div>
+    <div class="save-slot" data-slot="2" onclick="selectSave(2)">
+      <div class="slot-number">📁 存档 3</div>
+      <div class="slot-status" id="slotStatus2">—</div>
+    </div>
+  </div>
+  <button class="cover-btn" id="startBtn" disabled>开 始 游 戏</button>
+</div>
+
+<!-- ======== 加载界面 ======== -->
+<div class="loading-screen" id="loadingScreen" style="display:none">
+  <div class="loading-title">超 级 消 除</div>
+  <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingFill"></div></div>
+  <div class="loading-text" id="loadingText">正在载入...</div>
+</div>
+
+<!-- ======== BGM 按钮 ======== -->
+<button class="bgm-btn" id="bgmBtn" title="背景音乐">🎵</button>
 
 <div class="game-wrapper" id="gameWrapper">
   <!-- ======== 关卡地图界面（猫咪乐园） ======== -->
@@ -2083,30 +2241,151 @@ function isLevelUnlocked(levelIdx) {
   return levelStars[levelIdx - 1] >= 1;
 }
 
-function initGame() {
-  const saved = localStorage.getItem('xiaoxiaole_progress');
-  if (saved) {
-    try {
-      const data = JSON.parse(saved);
-      if (data.levelStars && Array.isArray(data.levelStars)) {
-        levelStars = data.levelStars;
-      } else if (data.totalStars !== undefined) {
-        // 迁移旧数据
-        const oldTotal = data.totalStars || 0;
-        const oldLevel = data.level || 0;
-        for (let i = 0; i <= oldLevel && i < 20; i++) {
-          levelStars[i] = Math.min(3, Math.max(1, Math.floor(oldTotal / (oldLevel + 1))));
-        }
-      }
-    } catch(e) { /* ignore */ }
+// ==================== 存档系统 ====================
+let currentSaveSlot = -1;
+const SAVE_KEYS = ['xiaoxiaole_save_0', 'xiaoxiaole_save_1', 'xiaoxiaole_save_2'];
+
+function getSaveData(slot) {
+  try { return JSON.parse(localStorage.getItem(SAVE_KEYS[slot])); } catch(e) { return null; }
+}
+
+function renderSaveSlots() {
+  for (let i = 0; i < 3; i++) {
+    const data = getSaveData(i);
+    const el = document.getElementById('slotStatus' + i);
+    if (data && data.levelStars) {
+      const total = data.levelStars.reduce((a, b) => a + b, 0);
+      let lastLv = 0; for (let j = data.levelStars.length - 1; j >= 0; j--) { if (data.levelStars[j] >= 1) { lastLv = j + 1; break; } }
+      const starsStr = '⭐'.repeat(Math.min(3, Math.max(0, data.levelStars[lastLv - 1] || 0)));
+      el.parentElement.className = 'save-slot' + (currentSaveSlot === i ? ' active' : '');
+      el.innerHTML = `
+        <div class="slot-status has-data">📊 进度 ${total}/120 ⭐</div>
+        <div class="slot-level">🎯 至第 ${lastLv || 1} 关</div>
+        <div class="slot-time">${data.lastPlayed || ''}</div>
+      `;
+    } else {
+      el.parentElement.className = 'save-slot' + (currentSaveSlot === i ? ' active' : '');
+      el.innerHTML = `<div class="slot-status">— 空 —</div><div class="slot-new">✨</div>`;
+    }
   }
-  showMapView(0);
+  document.getElementById('startBtn').disabled = (currentSaveSlot < 0);
+}
+
+function selectSave(slot) {
+  currentSaveSlot = slot;
+  const data = getSaveData(slot);
+  levelStars = (data && data.levelStars) ? data.levelStars : new Array(40).fill(0);
+  renderSaveSlots();
 }
 
 function saveProgress() {
-  localStorage.setItem('xiaoxiaole_progress', JSON.stringify({
+  if (currentSaveSlot < 0) return;
+  const now = new Date();
+  const timeStr = now.toLocaleDateString('zh-CN') + ' ' + now.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});
+  localStorage.setItem(SAVE_KEYS[currentSaveSlot], JSON.stringify({
     levelStars: levelStars,
+    lastPlayed: timeStr,
   }));
+}
+
+// ==================== BGM（Web Audio 生成） ====================
+let bgmCtx = null, bgmGain = null, bgmPlaying = false, bgmOsc = null;
+
+function toggleBGM() {
+  const btn = document.getElementById('bgmBtn');
+  if (bgmPlaying) { stopBGM(); btn.textContent = '🎵'; btn.classList.remove('playing'); }
+  else { startBGM(); btn.textContent = '🎶'; btn.classList.add('playing'); }
+}
+
+function startBGM() {
+  if (bgmPlaying) return;
+  try {
+    if (!bgmCtx) bgmCtx = new (window.AudioContext || window.webkitAudioContext)();
+    bgmGain = bgmCtx.createGain();
+    bgmGain.gain.value = 0.04;
+    bgmGain.connect(bgmCtx.destination);
+    playBGMLoop();
+    bgmPlaying = true;
+  } catch(e) { /* ignore */ }
+}
+
+function stopBGM() {
+  bgmPlaying = false;
+  if (bgmOsc) { try { bgmOsc.forEach(o => { try { o.stop(); } catch(e){} }); } catch(e){} bgmOsc = null; }
+}
+
+function playBGMLoop() {
+  if (!bgmPlaying || !bgmCtx) return;
+  // 简单的五声音阶旋律
+  const melody = [262, 294, 330, 392, 440, 392, 330, 294, 262, 330, 392, 523, 392, 330, 294, 262];
+  const time = bgmCtx.currentTime;
+  const noteLen = 0.5;
+  bgmOsc = [];
+  melody.forEach((freq, i) => {
+    const osc = bgmCtx.createOscillator();
+    const noteGain = bgmCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    noteGain.gain.setValueAtTime(0, time + i * noteLen);
+    noteGain.gain.linearRampToValueAtTime(0.8, time + i * noteLen + 0.05);
+    noteGain.gain.linearRampToValueAtTime(0.6, time + i * noteLen + noteLen * 0.6);
+    noteGain.gain.linearRampToValueAtTime(0, time + i * noteLen + noteLen);
+    osc.connect(noteGain);
+    noteGain.connect(bgmGain);
+    osc.start(time + i * noteLen);
+    osc.stop(time + i * noteLen + noteLen + 0.1);
+    bgmOsc.push(osc);
+  });
+  // 循环
+  setTimeout(() => playBGMLoop(), melody.length * noteLen * 1000 - 100);
+}
+
+// ==================== 封面和加载 ====================
+function initCover() {
+  // 生成星星粒子
+  const starsEl = document.getElementById('coverStars');
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('div');
+    s.className = 'cover-star';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 100 + '%';
+    s.style.setProperty('--dur', (2 + Math.random() * 4) + 's');
+    s.style.animationDelay = Math.random() * 3 + 's';
+    s.style.width = s.style.height = (1 + Math.random() * 2) + 'px';
+    starsEl.appendChild(s);
+  }
+  renderSaveSlots();
+  document.getElementById('bgmBtn').addEventListener('click', toggleBGM);
+}
+
+function startGame() {
+  const btn = document.getElementById('startBtn');
+  btn.disabled = true;
+  btn.textContent = '加载中...';
+  // 显示加载界面
+  const loading = document.getElementById('loadingScreen');
+  loading.style.display = '';
+  const fill = document.getElementById('loadingFill');
+  const text = document.getElementById('loadingText');
+  const tips = ['正在准备猫咪... 🐱', '搭建消除棋盘... ✨', '召唤宝石... 💎', '就差一点了... ⏳', '加载完成! 🎉'];
+  let pct = 0;
+  const step = () => {
+    pct += Math.random() * 8 + 3;
+    if (pct > 100) pct = 100;
+    fill.style.width = pct + '%';
+    text.textContent = tips[Math.min(Math.floor(pct / 20), tips.length - 1)];
+    if (pct < 100) setTimeout(step, 180 + Math.random() * 120);
+    else {
+      setTimeout(() => {
+        loading.style.display = 'none';
+        document.getElementById('coverScreen').style.display = 'none';
+        btn.disabled = false;
+        btn.textContent = '开 始 游 戏';
+        showMapView(0);
+      }, 300);
+    }
+  };
+  setTimeout(step, 200);
 }
 
 function goToLevelSelect() {
@@ -2550,8 +2829,9 @@ shakeStyle.textContent = `
 document.head.appendChild(shakeStyle);
 
 // ==================== 启动 ====================
-initGame();
-console.log('✨ 消消乐已就绪！');
+document.getElementById('startBtn').addEventListener('click', startGame);
+initCover();
+console.log('✨ 超级消除已就绪！');
 console.log('  点击选中宝石 → 点击相邻宝石交换');
 console.log('  键盘方向键可移动选中 → ESC取消选中');
 console.log('  也可用鼠标/触屏滑动交换');
