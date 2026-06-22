@@ -456,43 +456,13 @@
     flex-direction: column;
     width: 100%;
     max-width: 520px;
-    height: calc(100dvh - 60px);
-    height: calc(100vh - 60px);
+    height: calc(100dvh - 16px);
+    height: calc(100vh - 16px);
     min-height: 480px;
-    max-height: 720px;
+    max-height: 740px;
     animation: fadeSlideIn 0.3s ease;
     position: relative;
-  }
-  .map-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 4px 8px 4px;
-    z-index: 20;
-    position: relative;
-    flex-shrink: 0;
-    gap: 10px;
-  }
-  .map-header .map-title {
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #fff;
-    text-align: center;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    letter-spacing: 2px;
-    background: rgba(0,0,0,0.2);
-    backdrop-filter: blur(4px);
-    padding: 6px 20px;
-    border-radius: 30px;
-    border: 1px solid rgba(255,255,255,0.12);
-  }
-  .map-header .map-cat {
-    font-size: 1.5rem;
-    animation: catBounce 2s ease-in-out infinite;
-  }
-  @keyframes catBounce {
-    0%, 100% { transform: translateY(0) rotate(-3deg); }
-    50% { transform: translateY(-6px) rotate(3deg); }
+    padding: 8px;
   }
 
   .map-body {
@@ -787,6 +757,15 @@
   .node-circle.locked .node-num { opacity: 0.2; }
 
   .node-circle .node-num { font-size: 1.25rem; position: relative; z-index: 1; }
+  .node-circle .node-ch-emoji {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    font-size: 0.85rem;
+    z-index: 2;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+  }
+  .node-circle.locked .node-ch-emoji { display: none; }
   .node-circle .node-lock-icon {
     position: absolute;
     top: -5px;
@@ -903,18 +882,17 @@
     .info-item { padding: 8px 12px; min-width: 56px; }
     .info-item .value { font-size: 1.1rem; }
     /* 地图响应式 */
-    .map-screen { max-width: 100%; min-height: 380px; height: calc(100vh - 40px); max-height: none; }
+    .map-screen { max-width: 100%; min-height: 360px; height: calc(100vh - 16px); max-height: none; padding: 4px; }
     .map-body { min-height: 280px; border-radius: 14px; }
     .node-circle { width: 44px; height: 44px; font-size: 1.05rem; }
     .node-circle .node-num { font-size: 1.05rem; }
     .node-circle .node-stars { font-size: 0.6rem; bottom: -14px; }
+    .node-circle .node-ch-emoji { font-size: 0.7rem; top: -6px; left: -6px; }
     .node-circle.cat-ear::before,
     .node-circle.cat-ear::after { font-size: 0.45rem; top: -10px; }
     .node-circle.cat-ear::before { left: 4px; }
     .node-circle.cat-ear::after { right: 4px; }
     .node-label { font-size: 0.55rem; margin-top: 17px; padding: 2px 8px; }
-    .map-header .map-title { font-size: 0.95rem; padding: 5px 14px; }
-    .map-header .map-cat { font-size: 1.3rem; }
     .cloud.c1 { width: 70px; height: 20px; }
     .cloud.c1::before { width: 35px; height: 20px; top: -10px; left: 12px; }
     .cloud.c1::after { width: 24px; height: 15px; top: -7px; left: 38px; }
@@ -931,8 +909,8 @@
     .node-circle { width: 42px; height: 42px; font-size: 1rem; }
     .node-circle .node-num { font-size: 1rem; }
     .node-circle .node-stars { font-size: 0.6rem; bottom: -13px; }
+    .node-circle .node-ch-emoji { font-size: 0.65rem; top: -5px; left: -5px; }
     .node-label { font-size: 0.55rem; margin-top: 15px; padding: 1px 6px; }
-    .map-header .map-title { font-size: 0.95rem; }
   }
 </style>
 </head>
@@ -941,11 +919,6 @@
 <div class="game-wrapper" id="gameWrapper">
   <!-- ======== 关卡地图界面（猫咪乐园） ======== -->
   <div class="map-screen" id="levelScreen">
-    <div class="map-header">
-      <span class="map-cat">🐱</span>
-      <div class="map-title" id="mapTitle">🌟 猫咪闯关</div>
-      <span class="map-cat">🐱</span>
-    </div>
     <div class="map-body" id="mapBody">
       <div class="map-bg-season"></div>
       <div class="scenery">
@@ -2221,7 +2194,8 @@ function showMapView(chIdx) {
 
   mapContent.appendChild(svg);
 
-  // ---- 添加关卡节点 ----
+  // ---- 添加关卡节点（每章有特色装饰） ----
+  const CHAPTER_EMOJI = ['🌸', '☀️', '🍂', '❄️'];
   positions.forEach((pos, i) => {
     const lv = LEVELS[i];
     const unlocked = isLevelUnlocked(i);
@@ -2235,15 +2209,17 @@ function showMapView(chIdx) {
     node.style.transform = 'translate(-50%, -50%)';
 
     const circleClasses = `node-circle ${unlocked ? '' : 'locked'} ${stars > 0 ? 'completed cat-ear' : ''}`;
+    const chEmoji = CHAPTER_EMOJI[chIdx] || '';
     node.innerHTML = `
       <div class="${circleClasses}">
+        <span class="node-ch-emoji">${chEmoji}</span>
         <span class="node-num">${lv.level}</span>
         <div class="node-stars">
           ${[1,2,3].map(s => `<span class="${s <= stars ? 's-on' : 's-off'}">★</span>`).join('')}
         </div>
         ${!unlocked ? '<span class="node-lock-icon">🔒</span>' : ''}
       </div>
-      <div class="node-label">${lv.name}</div>
+      <div class="node-label">${chEmoji} ${lv.name}</div>
     `;
 
     if (unlocked) {
@@ -2307,11 +2283,19 @@ function showMapView(chIdx) {
 
   showScreen('level');
 
-  // 滚动到当前章节区域（第20关在顶部，第1关在底部）
+  // 滚动到最后一个通过的关卡（从下到上，最高索引为最新通关）
   requestAnimationFrame(() => {
-    // 定位到当前章节的最上面一关附近
-    const chTopIdx = Math.min(chIdx * 10 + 9, LEVELS.length - 1);
-    const scrollTarget = positions[chTopIdx].y - 100;
+    // 找到最高索引的已通关关卡
+    let lastPassed = -1;
+    for (let i = LEVELS.length - 1; i >= 0; i--) {
+      if (levelStars[i] >= 1) { lastPassed = i; break; }
+    }
+    // 如果通关了第40关（全部通关），显示第40关；否则显示下一关
+    let targetIdx = lastPassed + 1;
+    if (targetIdx >= LEVELS.length) targetIdx = LEVELS.length - 1;
+    if (lastPassed < 0) targetIdx = 0; // 一关都没过，显示第1关
+
+    const scrollTarget = positions[targetIdx].y - 120;
     mapBody.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'smooth' });
   });
 }
