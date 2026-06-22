@@ -503,26 +503,61 @@
     border-radius: 18px;
     border: 2px solid rgba(255,255,255,0.12);
     min-height: 360px;
-    /* 卡通风景背景：粉嫩天空 → 彩虹色 → 草地的渐变 */
+    /* 隐藏滚动条 */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .map-body::-webkit-scrollbar { display: none; }
+
+  /* 风景背景层 */
+  .map-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    /* 唯美天空 → 远山 → 草地 */
     background:
-      /* 草地 */
+      /* 远处薄雾 */
+      linear-gradient(180deg, transparent 50%, rgba(200,220,180,0.15) 65%, transparent 72%),
+      /* 草地渐变 */
       linear-gradient(180deg,
-        rgba(120,210,80,0) 54%,
-        rgba(100,200,60,0.3) 58%,
-        rgba(80,185,45,0.55) 66%,
-        rgba(60,165,30,0.75) 76%,
-        rgba(45,140,20,0.9) 86%,
-        rgba(35,110,15,1) 100%
+        transparent 52%,
+        rgba(140,210,100,0.3) 56%,
+        rgba(100,195,60,0.5) 62%,
+        rgba(70,170,40,0.65) 70%,
+        rgba(50,145,25,0.8) 80%,
+        rgba(35,115,15,0.9) 90%,
+        rgba(25,90,10,1) 100%
       ),
-      /* 天空日落渐变 */
+      /* 天空夕阳渐变 */
       linear-gradient(180deg,
-        #b3d9ff 0%,
-        #d4aaff 20%,
-        #f8c8dc 35%,
-        #ffe0b2 45%,
-        #fff8e1 50%,
-        #c8e6c9 55%
+        #1a1a3e 0%,
+        #2d2b55 8%,
+        #5b3a8c 18%,
+        #c76b8a 28%,
+        #f5a97f 36%,
+        #ffe082 44%,
+        #fff8e7 50%,
+        #e8f5e9 55%
       );
+  }
+
+  /* 草地区域装饰 */
+  .grass-blade {
+    position: absolute;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(to top, #2d7a10, #4aad20);
+    border-radius: 2px 2px 0 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+    transform-origin: bottom center;
+    animation: grassSway 3s ease-in-out infinite;
+  }
+  @keyframes grassSway {
+    0%, 100% { transform: rotate(-2deg); }
+    50% { transform: rotate(2deg); }
   }
 
   /* ---- 卡通风景装饰 ---- */
@@ -534,56 +569,97 @@
     z-index: 0;
     isolation: isolate;
   }
-  /* 可爱云朵 */
+  /* 可爱云朵（带立体阴影） */
   .cloud {
     position: absolute;
-    background: rgba(255,255,255,0.7);
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.6));
     border-radius: 50px;
-    box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+    box-shadow: 0 6px 20px rgba(255,255,255,0.15), inset 0 -2px 6px rgba(0,0,0,0.03);
   }
   .cloud::before, .cloud::after {
     content: '';
     position: absolute;
     background: inherit;
     border-radius: 50%;
+    box-shadow: inherit;
   }
   .cloud.c1 {
-    width: 100px; height: 28px;
-    top: 5%; left: 5%;
+    width: 110px; height: 30px;
+    top: 5%; left: 3%;
+    animation: cloudDrift 22s ease-in-out infinite;
+  }
+  .cloud.c1::before { width: 55px; height: 32px; top: -15px; left: 20px; }
+  .cloud.c1::after { width: 38px; height: 24px; top: -11px; left: 60px; }
+  .cloud.c2 {
+    width: 90px; height: 25px;
+    top: 11%; right: 6%;
+    animation: cloudDrift 26s ease-in-out infinite reverse;
+  }
+  .cloud.c2::before { width: 45px; height: 26px; top: -13px; left: 16px; }
+  .cloud.c2::after { width: 32px; height: 20px; top: -9px; left: 50px; }
+  .cloud.c3 {
+    width: 65px; height: 20px;
+    top: 17%; left: 42%;
     animation: cloudDrift 20s ease-in-out infinite;
   }
-  .cloud.c1::before { width: 50px; height: 30px; top: -14px; left: 18px; border-radius: 50%; }
-  .cloud.c1::after { width: 35px; height: 22px; top: -10px; left: 55px; border-radius: 50%; }
-  .cloud.c2 {
-    width: 80px; height: 22px;
-    top: 10%; right: 8%;
-    animation: cloudDrift 25s ease-in-out infinite reverse;
-  }
-  .cloud.c2::before { width: 40px; height: 24px; top: -12px; left: 15px; border-radius: 50%; }
-  .cloud.c2::after { width: 30px; height: 18px; top: -8px; left: 45px; border-radius: 50%; }
-  .cloud.c3 {
-    width: 60px; height: 18px;
-    top: 16%; left: 45%;
-    animation: cloudDrift 18s ease-in-out infinite;
-  }
-  .cloud.c3::before { width: 30px; height: 20px; top: -10px; left: 12px; border-radius: 50%; }
-  .cloud.c3::after { width: 22px; height: 14px; top: -6px; left: 33px; border-radius: 50%; }
+  .cloud.c3::before { width: 32px; height: 22px; top: -11px; left: 13px; }
+  .cloud.c3::after { width: 24px; height: 16px; top: -7px; left: 38px; }
   @keyframes cloudDrift {
     0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(25px); }
+    50% { transform: translateX(20px); }
   }
   /* 彩虹 */
   .rainbow {
     position: absolute;
     top: 1%;
-    right: 10%;
-    width: 80px;
-    height: 40px;
-    border-radius: 80px 80px 0 0;
+    right: 8%;
+    width: 90px;
+    height: 45px;
+    border-radius: 90px 90px 0 0;
     background: conic-gradient(from 0deg, #ff6b6b, #ff9f43, #feca57, #2ecc71, #54a0ff, #a29bfe, #ff6b6b);
-    opacity: 0.35;
-    mask: linear-gradient(to bottom, black 60%, transparent 100%);
-    -webkit-mask: linear-gradient(to bottom, black 60%, transparent 100%);
+    opacity: 0.4;
+    mask: linear-gradient(to bottom, black 55%, transparent 100%);
+    -webkit-mask: linear-gradient(to bottom, black 55%, transparent 100%);
+    filter: drop-shadow(0 2px 8px rgba(255,200,100,0.2));
+  }
+  /* 远山剪影（搭配唯美天空） */
+  .mountain {
+    position: absolute;
+    bottom: 30%;
+    pointer-events: none;
+  }
+  .mountain.m1 {
+    left: -5%;
+    width: 50%;
+    height: 160px;
+    background: linear-gradient(135deg, #4a3a5a 0%, #2d3a45 60%, #1a2a30 100%);
+    clip-path: polygon(0% 100%, 8% 60%, 18% 40%, 28% 55%, 40% 25%, 52% 45%, 62% 18%, 75% 38%, 88% 10%, 100% 45%, 100% 100%);
+    opacity: 0.3;
+  }
+  .mountain.m2 {
+    right: -5%;
+    width: 55%;
+    height: 220px;
+    background: linear-gradient(135deg, #3d3050 0%, #2a3038 50%, #152025 100%);
+    clip-path: polygon(0% 100%, 15% 55%, 28% 35%, 42% 48%, 55% 22%, 68% 42%, 80% 15%, 100% 50%, 100% 100%);
+    opacity: 0.25;
+  }
+  .mountain.m3 {
+    left: 28%;
+    width: 35%;
+    height: 100px;
+    background: linear-gradient(135deg, #554470 0%, #3a4850 100%);
+    clip-path: polygon(0% 100%, 50% 10%, 100% 100%);
+    opacity: 0.2;
+    bottom: 34%;
+  }
+  /* 小树剪影 */
+  .tree-silhouette {
+    position: absolute;
+    font-size: 2rem;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.15;
   }
   /* 小星星装饰 */
   .sparkle {
@@ -894,6 +970,10 @@
     .cloud.c2::after { width: 20px; height: 12px; top: -5px; left: 32px; }
     .cloud.c3 { display: none; }
     .rainbow { width: 55px; height: 28px; }
+    .mountain.m1 { height: 100px; }
+    .mountain.m2 { height: 140px; }
+    .mountain.m3 { display: none; }
+    .tree-silhouette { display: none; }
     .map-body { min-height: 300px; border-radius: 12px; }
     .node-circle { width: 42px; height: 42px; font-size: 1rem; }
     .node-circle .node-num { font-size: 1rem; }
@@ -915,11 +995,20 @@
       <span class="map-cat">🐱</span>
     </div>
     <div class="map-body" id="mapBody">
+      <div class="map-bg"></div>
       <div class="scenery">
         <div class="rainbow"></div>
         <div class="cloud c1"></div>
         <div class="cloud c2"></div>
         <div class="cloud c3"></div>
+        <!-- 远山剪影 -->
+        <div class="mountain m1"></div>
+        <div class="mountain m2"></div>
+        <div class="mountain m3"></div>
+        <!-- 小树剪影 -->
+        <span class="tree-silhouette" style="bottom:29%;left:2%;">🌲</span>
+        <span class="tree-silhouette" style="bottom:30%;right:4%;transform:scale(0.8);">🌲</span>
+        <span class="tree-silhouette" style="bottom:28%;left:40%;transform:scale(0.6);">🌲</span>
         <!-- 装饰性星星 -->
         <span class="sparkle" style="top:3%;left:15%;">✨</span>
         <span class="sparkle" style="top:8%;right:20%;animation-delay:0.5s;">✨</span>
@@ -1968,68 +2057,124 @@ function showMapView(chIdx) {
   svg.setAttribute('preserveAspectRatio', 'none');
   svg.classList.add('map-svg');
 
-  // 计算每个关卡的画布坐标
+  // 计算每个关卡的画布坐标（从下到上：第1关在最下方）
   const positions = [];
   for (let i = 0; i < LEVELS.length; i++) {
-    // 左右交替：偶数右，奇数左
     const x = i % 2 === 0 ? 78 : 22;
-    const y = 60 + i * NODE_SPACING;
+    // 反转：i=0(第1关)在底部，i=19(第20关)在顶部
+    const y = MAP_HEIGHT - 80 - i * NODE_SPACING;
     positions.push({ x, y });
   }
 
-  // 绘制路径 - 2条带阴影的线
-  for (const shadow of [true, false]) {
-    const pathEl = document.createElementNS(svgNS, 'path');
-    let d = '';
-    for (let i = 0; i < positions.length; i++) {
-      if (i === 0) {
-        d += `M ${positions[0].x} ${positions[0].y}`;
-      } else {
-        const prev = positions[i - 1];
-        const midX = 50;
-        const midY = (prev.y + positions[i].y) / 2;
-        d += ` Q ${midX} ${midY}, ${positions[i].x} ${positions[i].y}`;
-      }
-    }
-    pathEl.setAttribute('d', d);
-    if (shadow) {
-      pathEl.setAttribute('stroke', 'rgba(0,0,0,0.2)');
-      pathEl.setAttribute('stroke-width', '14');
-      pathEl.setAttribute('transform', 'translate(0,2)');
-      pathEl.setAttribute('fill', 'none');
-      pathEl.setAttribute('stroke-linecap', 'round');
-      pathEl.setAttribute('stroke-linejoin', 'round');
-    } else {
-      // 渐变色路径
-      pathEl.setAttribute('stroke', 'rgba(139,115,85,0.5)');
-      pathEl.setAttribute('stroke-width', '10');
-      pathEl.setAttribute('stroke-linecap', 'round');
-      pathEl.setAttribute('stroke-linejoin', 'round');
-      pathEl.setAttribute('fill', 'none');
-    }
-    svg.appendChild(pathEl);
-  }
+  // ---- 路径颜色配置：每章不同颜色 ----
+  const chapterColors = [
+    { main: 'rgba(255,130,130,0.55)', glow: 'rgba(255,100,100,0.2)' },  // 红粉
+    { main: 'rgba(255,180,80,0.55)',  glow: 'rgba(255,160,50,0.2)' },   // 橙金
+    { main: 'rgba(100,180,255,0.55)', glow: 'rgba(80,160,255,0.2)' },   // 天蓝
+    { main: 'rgba(180,150,255,0.55)', glow: 'rgba(160,130,255,0.2)' },  // 浅紫
+  ];
+  const chapLen = 5; // 每章关数
 
-  // 彩色路径分段的渐变效果 - 用虚线叠加
-  const colorPath = document.createElementNS(svgNS, 'path');
+  // 绘制路径 - 3层：外发光 → 主路径 → 内高光线
+  // 外发光（阴影）
+  const glowPath = document.createElementNS(svgNS, 'path');
+  // 主路径
+  const mainPath = document.createElementNS(svgNS, 'path');
+  // 内高光线（虚线）
+  const innerPath = document.createElementNS(svgNS, 'path');
+
+  // 构建路径 d 字符串
   let d = '';
   for (let i = 0; i < positions.length; i++) {
     if (i === 0) {
       d += `M ${positions[0].x} ${positions[0].y}`;
     } else {
       const prev = positions[i - 1];
+      // 缓入缓出的贝塞尔曲线，使路径更自然
       const midX = 50;
-      d += ` Q ${midX} ${(prev.y + positions[i].y) / 2}, ${positions[i].x} ${positions[i].y}`;
+      const midY = (prev.y + positions[i].y) / 2;
+      const ctrlOff = Math.abs(positions[i].x - prev.x) * 0.3;
+      const cpx1 = prev.x + (midX - prev.x) * 0.5;
+      const cpx2 = positions[i].x + (midX - positions[i].x) * 0.5;
+      d += ` C ${cpx1} ${prev.y + (midY - prev.y) * 0.3}, ${cpx2} ${positions[i].y - (positions[i].y - midY) * 0.3}, ${positions[i].x} ${positions[i].y}`;
     }
   }
-  colorPath.setAttribute('d', d);
-  colorPath.setAttribute('stroke', 'rgba(255,215,0,0.15)');
-  colorPath.setAttribute('stroke-width', '6');
-  colorPath.setAttribute('stroke-linecap', 'round');
-  colorPath.setAttribute('stroke-linejoin', 'round');
-  colorPath.setAttribute('fill', 'none');
-  colorPath.setAttribute('stroke-dasharray', '8,12');
-  svg.appendChild(colorPath);
+
+  // 外发光层
+  glowPath.setAttribute('d', d);
+  glowPath.setAttribute('stroke', 'rgba(255,200,150,0.15)');
+  glowPath.setAttribute('stroke-width', '18');
+  glowPath.setAttribute('fill', 'none');
+  glowPath.setAttribute('stroke-linecap', 'round');
+  glowPath.setAttribute('stroke-linejoin', 'round');
+  glowPath.setAttribute('filter', 'url(#glow)');
+  svg.appendChild(glowPath);
+
+  // 主路径 - 分段着色
+  // 用多个path段来实现分段颜色
+  for (let seg = 0; seg < positions.length - 1; seg++) {
+    const segPath = document.createElementNS(svgNS, 'path');
+    const prev = positions[seg];
+    const curr = positions[seg + 1];
+    const chIdx = Math.floor(seg / chapLen);
+    const color = chapterColors[Math.min(chIdx, chapterColors.length - 1)];
+    const midX = 50;
+    const midY = (prev.y + curr.y) / 2;
+    const dSeg = `M ${prev.x} ${prev.y} C ${prev.x + (midX - prev.x) * 0.5} ${prev.y + (midY - prev.y) * 0.3}, ${curr.x + (midX - curr.x) * 0.5} ${curr.y - (curr.y - midY) * 0.3}, ${curr.x} ${curr.y}`;
+    segPath.setAttribute('d', dSeg);
+    segPath.setAttribute('stroke', color.main);
+    segPath.setAttribute('stroke-width', '9');
+    segPath.setAttribute('fill', 'none');
+    segPath.setAttribute('stroke-linecap', 'round');
+    segPath.setAttribute('stroke-linejoin', 'round');
+    segPath.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))';
+    svg.appendChild(segPath);
+
+    // 章节过渡处加小装饰
+    if (seg > 0 && (seg + 1) % chapLen === 0 && seg + 1 < positions.length - 1) {
+      const decor = document.createElementNS(svgNS, 'circle');
+      decor.setAttribute('cx', '50');
+      decor.setAttribute('cy', midY.toString());
+      decor.setAttribute('r', '5');
+      decor.setAttribute('fill', 'rgba(255,255,255,0.3)');
+      decor.setAttribute('stroke', color.main);
+      decor.setAttribute('stroke-width', '2');
+      svg.appendChild(decor);
+    }
+  }
+
+  // 内层高光线（亮色虚线，沿路径前进方向）
+  innerPath.setAttribute('d', d);
+  innerPath.setAttribute('stroke', 'rgba(255,255,255,0.35)');
+  innerPath.setAttribute('stroke-width', '3');
+  innerPath.setAttribute('fill', 'none');
+  innerPath.setAttribute('stroke-linecap', 'round');
+  innerPath.setAttribute('stroke-linejoin', 'round');
+  innerPath.setAttribute('stroke-dasharray', '6,14');
+  svg.appendChild(innerPath);
+
+  // SVG 滤镜 - 路径发光
+  const defs = document.createElementNS(svgNS, 'defs');
+  const filter = document.createElementNS(svgNS, 'filter');
+  filter.setAttribute('id', 'glow');
+  filter.setAttribute('x', '-20%');
+  filter.setAttribute('y', '-20%');
+  filter.setAttribute('width', '140%');
+  filter.setAttribute('height', '140%');
+  const blur = document.createElementNS(svgNS, 'feGaussianBlur');
+  blur.setAttribute('stdDeviation', '6');
+  blur.setAttribute('result', 'blur');
+  const merge = document.createElementNS(svgNS, 'feMerge');
+  const mn1 = document.createElementNS(svgNS, 'feMergeNode');
+  mn1.setAttribute('in', 'blur');
+  const mn2 = document.createElementNS(svgNS, 'feMergeNode');
+  mn2.setAttribute('in', 'SourceGraphic');
+  merge.appendChild(mn1);
+  merge.appendChild(mn2);
+  filter.appendChild(blur);
+  filter.appendChild(merge);
+  defs.appendChild(filter);
+  svg.appendChild(defs);
 
   mapContent.appendChild(svg);
 
@@ -2085,21 +2230,24 @@ function showMapView(chIdx) {
     }
   }
 
-  // ---- 猫猫在起点欢迎 ----
+  // ---- 猫猫在起点（第1关）上方欢迎 ----
   const welcomeCat = document.createElement('div');
   welcomeCat.className = 'paw-print';
   welcomeCat.textContent = '🐱';
-  welcomeCat.style.left = positions[0].x + '%';
-  welcomeCat.style.top = (positions[0].y - 55) + 'px';
-  welcomeCat.style.transform = 'translate(-50%, 0)';
-  welcomeCat.style.fontSize = '1.6rem';
-  welcomeCat.style.opacity = '0.6';
-  welcomeCat.style.animation = 'catBounce 2s ease-in-out infinite';
+  welcomeCat.style.left = '50%';
+  welcomeCat.style.top = (positions[LEVELS.length - 1].y - 40) + 'px';
+  welcomeCat.style.transform = 'translateX(-50%)';
+  welcomeCat.style.fontSize = '1.8rem';
+  welcomeCat.style.opacity = '0.5';
+  welcomeCat.style.animation = 'catBounce 2.5s ease-in-out infinite';
   mapContent.appendChild(welcomeCat);
 
-  // ---- 添加篇章分隔条 ----
+  // ---- 添加篇章分隔条（从下到上排列） ----
   for (let c = 1; c < CHAPTERS.length; c++) {
-    const dividerY = c * 5 * NODE_SPACING + 45;
+    // 分隔条在两个章节之间：第5*c-1关与第5*c关之间
+    const topIdx = 5 * c - 1;
+    const bottomIdx = 5 * c;
+    const dividerY = (positions[topIdx].y + positions[bottomIdx].y) / 2;
     const div = document.createElement('div');
     div.className = `chapter-divider d${c}`;
     div.textContent = `😸 ${CHAPTERS[c].name} · ${CHAPTERS[c].subtitle}`;
@@ -2107,20 +2255,35 @@ function showMapView(chIdx) {
     mapContent.appendChild(div);
   }
 
-  // ---- 最后一关之后的完成标记 ----
+  // ---- 目标终点标记（第20关上方） ----
+  const goalBadge = document.createElement('div');
+  goalBadge.className = goalBadge; // will be replaced
+  const lastPos = positions[LEVELS.length - 1];
   if (levelStars[LEVELS.length - 1] >= 1) {
+    // 全部通关
     const badge = document.createElement('div');
     badge.className = 'map-complete-badge';
     badge.textContent = '🏆';
-    badge.style.top = (MAP_HEIGHT - 25) + 'px';
+    badge.style.top = (lastPos.y - 60) + 'px';
+    mapContent.appendChild(badge);
+  } else {
+    // 终点标记
+    const badge = document.createElement('div');
+    badge.className = 'map-complete-badge';
+    badge.textContent = '⭐';
+    badge.style.top = (lastPos.y - 55) + 'px';
+    badge.style.fontSize = '1.8rem';
+    badge.style.opacity = '0.4';
     mapContent.appendChild(badge);
   }
 
   showScreen('level');
 
-  // 滚动到当前章节区域
+  // 滚动到当前章节区域（第20关在顶部，第1关在底部）
   requestAnimationFrame(() => {
-    const scrollTarget = chIdx * 5 * NODE_SPACING - 100;
+    // 定位到当前章节的最上面一关附近
+    const chTopIdx = Math.min(chIdx * 5 + 4, LEVELS.length - 1);
+    const scrollTarget = positions[chTopIdx].y - 100;
     mapBody.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'smooth' });
   });
 }
