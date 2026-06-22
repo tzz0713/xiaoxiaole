@@ -1646,6 +1646,56 @@ function shakeCell(row, col) {
 }
 
 // ==================== 道具激活 ====================
+// 收集道具的清除范围（包括链式反应触发的其他道具）
+function collectPowerupEffect(row, col, type, visited = new Set()) {
+  const key = `${row},${col}`;
+  if (visited.has(key)) return new Set();
+  visited.add(key);
+
+  const allCells = new Set();
+  allCells.add(key); // 道具自身也被清除
+
+  // 根据道具类型计算效果格子
+  const effectCells = [];
+  switch (type) {
+    case POWERUP_FIREWORK:
+      for (let c = 0; c < COLS; c++) effectCells.push({row, col: c});
+      for (let r = 0; r < ROWS; r++) effectCells.push({row: r, col});
+      break;
+    case POWERUP_BOMB:
+      for (let dr = -2; dr <= 2; dr++)
+        for (let dc = -2; dc <= 2; dc++)
+          if (row+dr >= 0 && row+dr < ROWS && col+dc >= 0 && col+dc < COLS)
+            effectCells.push({row: row+dr, col: col+dc});
+      break;
+    case POWERUP_SMALLBOMB:
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++)
+          if (row+dr >= 0 && row+dr < ROWS && col+dc >= 0 && col+dc < COLS)
+            effectCells.push({row: row+dr, col: col+dc});
+      break;
+    case POWERUP_RAINBOW:
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          effectCells.push({row: r, col: c});
+      break;
+  }
+
+  for (const {row: r, col: c} of effectCells) {
+    const val = board[r][c];
+    if (val === null) continue;
+    if (isPowerup(val) && !(r === row && c === col)) {
+      // 链式触发其他道具
+      const chained = collectPowerupEffect(r, c, val, visited);
+      for (const k of chained) allCells.add(k);
+    } else {
+      allCells.add(`${r},${c}`);
+    }
+  }
+
+  return allCells;
+}
+
 async function activatePowerup(row, col) {
   if (isProcessing) return;
   const pType = board[row][col];
@@ -1657,70 +1707,33 @@ async function activatePowerup(row, col) {
 
   // 播放激活闪光
   const cellEl = boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-  if (cellEl) {
-    cellEl.classList.add('powerup-activating');
+  if (cellEl) cellEl.classList.add('powerup-activating');
+
+  // 首次激活的道具播放视觉特效
+  switch (pType) {
+    case POWERUP_FIREWORK: showBeamEffect(row, col); break;
+    case POWERUP_BOMB: spawnBombShockwave(row, col); break;
+    case POWERUP_SMALLBOMB: spawnSmallBombShockwave(row, col); break;
+    case POWERUP_RAINBOW: showScreenFlash(); break;
   }
 
-  const cleared = [];
+  // 收集所有受影响的格子（含链式反应）
+  const cellSet = collectPowerupEffect(row, col, pType);
+  const cleared = [...cellSet].map(k => {
+    const [r, c] = k.split(',').map(Number);
+    return {row: r, col: c};
+  });
 
-  switch (pType) {
-    case POWERUP_FIREWORK:
-      // 烟花：清除整行 + 整列
-      showBeamEffect(row, col);
-      for (let c = 0; c < COLS; c++) {
-        if (board[row][c] !== null) { cleared.push({row, col: c}); board[row][c] = null; }
-      }
-      for (let r = 0; r < ROWS; r++) {
-        if (board[r][col] !== null) { cleared.push({row: r, col}); board[r][col] = null; }
-      }
-      break;
-
-    case POWERUP_BOMB:
-      // 炸弹：清除 5×5 区域
-      for (let dr = -2; dr <= 2; dr++) {
-        for (let dc = -2; dc <= 2; dc++) {
-          const nr = row + dr, nc = col + dc;
-          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] !== null) {
-            cleared.push({row: nr, col: nc});
-            board[nr][nc] = null;
-          }
-        }
-      }
-      // 炸弹视觉
-      spawnBombShockwave(row, col);
-      break;
-
-    case POWERUP_SMALLBOMB:
-      // 小炸弹：清除 3×3 区域
-      for (let dr = -1; dr <= 1; dr++) {
-        for (let dc = -1; dc <= 1; dc++) {
-          const nr = row + dr, nc = col + dc;
-          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] !== null) {
-            cleared.push({row: nr, col: nc});
-            board[nr][nc] = null;
-          }
-        }
-      }
-      // 小炸弹视觉
-      spawnSmallBombShockwave(row, col);
-      break;
-
-    case POWERUP_RAINBOW:
-      // 彩虹：全屏清除
-      showScreenFlash();
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          if (board[r][c] !== null) { cleared.push({row: r, col: c}); board[r][c] = null; }
-        }
-      }
-      break;
+  // 清除所有格子
+  for (const {row: r, col: c} of cleared) {
+    board[r][c] = null;
   }
 
   // 计分（道具激活算 1 combo）
   comboCount++;
   score += cleared.length * 10 * comboCount;
   updateUI();
-  spawnParticles(cleared.slice(0, 20)); // 限制粒子数量
+  spawnParticles(cleared.slice(0, 30));
   if (comboCount >= 3) spawnComboPop(comboCount);
 
   renderBoard([], cleared);
