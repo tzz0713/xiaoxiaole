@@ -2250,7 +2250,6 @@ function getSaveData(slot) {
 }
 
 function renderSaveSlots() {
-  if (!document.getElementById('slotStatus0')) return;
   for (let i = 0; i < 3; i++) {
     const data = getSaveData(i);
     const el = document.getElementById('slotStatus' + i);
@@ -2830,17 +2829,9 @@ shakeStyle.textContent = `
 document.head.appendChild(shakeStyle);
 
 // ==================== 启动 ====================
-try {
-  document.getElementById('startBtn').addEventListener('click', startGame);
-  initCover();
-  console.log('✨ 超级消除已就绪！');
-} catch(e) {
-  console.error('启动错误:', e);
-  // 容错：如果封面加载失败，直接进入游戏
-  document.getElementById('coverScreen').style.display = 'none';
-  document.getElementById('loadingScreen').style.display = 'none';
-  try { showMapView(0); } catch(e2) { console.error(e2); }
-}
+document.getElementById('startBtn').addEventListener('click', startGame);
+initCover();
+console.log('✨ 超级消除已就绪！');
 console.log('  点击选中宝石 → 点击相邻宝石交换');
 console.log('  键盘方向键可移动选中 → ESC取消选中');
 console.log('  也可用鼠标/触屏滑动交换');
