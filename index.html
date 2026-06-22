@@ -298,6 +298,18 @@
     100% { filter: hue-rotate(360deg); }
   }
 
+  /* 道具 SVG 图标 */
+  .powerup-icon {
+    width: 65%;
+    height: 65%;
+    display: block;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.3));
+  }
+  .cell.powerup-firework .powerup-icon { filter: drop-shadow(0 0 6px rgba(255,215,0,0.6)); }
+  .cell.powerup-bomb .powerup-icon { filter: drop-shadow(0 0 4px rgba(255,50,50,0.4)); }
+  .cell.powerup-smallbomb .powerup-icon { filter: drop-shadow(0 0 4px rgba(255,100,50,0.4)); }
+  .cell.powerup-rainbow .powerup-icon { filter: drop-shadow(0 0 8px rgba(255,255,255,0.5)); }
+
   /* 激活闪光 */
   .cell.powerup-activating {
     animation: powerupFlash 0.5s ease-out forwards !important;
@@ -1018,6 +1030,13 @@ const POWERUP_SMALLBOMB = 'powerup-smallbomb';
 const POWERUP_TYPES = [POWERUP_FIREWORK, POWERUP_BOMB, POWERUP_RAINBOW, POWERUP_SMALLBOMB];
 const POWERUP_EMOJI = { 'powerup-firework':'🎆', 'powerup-bomb':'💣', 'powerup-rainbow':'🌈', 'powerup-smallbomb':'💥' };
 const POWERUP_NAMES = { 'powerup-firework':'烟花', 'powerup-bomb':'炸弹', 'powerup-rainbow':'彩虹', 'powerup-smallbomb':'小炸弹' };
+// 自定义 SVG 图标（替代 emoji）
+const POWERUP_SVG = {
+  'powerup-firework': '<svg viewBox="0 0 24 24" class="powerup-icon"><path d="M12 2l1.5 5.5L19 6l-3.5 4L21 14l-5.5-1L12 18l-1.5-5.5L5 14l3.5-4L5 6z" fill="#fff" opacity="0.95"/><circle cx="12" cy="12" r="2" fill="#fff" opacity="0.85"/></svg>',
+  'powerup-bomb': '<svg viewBox="0 0 24 24" class="powerup-icon"><circle cx="12" cy="15" r="8" fill="#fff" opacity="0.9"/><rect x="11" y="5" width="2" height="6" rx="1" fill="#fff" opacity="0.7"/><circle cx="12" cy="4" r="2.5" fill="#ff4444"/><circle cx="9" cy="13" r="1" fill="#999" opacity="0.4"/><circle cx="15" cy="13" r="1" fill="#999" opacity="0.4"/></svg>',
+  'powerup-smallbomb': '<svg viewBox="0 0 24 24" class="powerup-icon"><circle cx="12" cy="15" r="7" fill="#fff" opacity="0.9"/><rect x="11" y="6" width="2" height="5" rx="1" fill="#fff" opacity="0.7"/><circle cx="12" cy="5" r="2" fill="#ff6348"/></svg>',
+  'powerup-rainbow': '<svg viewBox="0 0 24 24" class="powerup-icon"><path d="M4 19Q12 2 20 19" stroke="#ff6b6b" stroke-width="2.5" fill="none" opacity="0.9"/><path d="M7 19Q12 9 17 19" stroke="#feca57" stroke-width="2.5" fill="none" opacity="0.9"/><path d="M10 19Q12 14 14 19" stroke="#2ecc71" stroke-width="2.5" fill="none" opacity="0.9"/><path d="M12 19Q12 17 12 19" stroke="#54a0ff" stroke-width="2.5" fill="none" opacity="0"/></svg>',
+};
 function isPowerup(cell) { return cell && POWERUP_TYPES.includes(cell); }
 function isGem(cell) { return cell && GEM_TYPES.includes(cell); }
 
@@ -1080,6 +1099,7 @@ let isProcessing = false;
 let hintCells = [];
 let swapAnimCells = [];  // [{row, col, cls}] 换位动画
 let levelStars = new Array(40).fill(0);
+let lastMovePos = null; // 玩家上次移动的目标位置，用于道具生成
 
 // ---- DOM 引用 ----
 const boardEl       = document.getElementById('board');
@@ -1188,6 +1208,9 @@ function isPartOfMatch(row, col) {
 // 分析棋盘：找出所有匹配 + 特殊图案对应的道具生成位置
 // 返回 { matches: [{row,col}], powerups: [{row,col,type}] }
 function analyzeBoard() {
+  // 使用玩家上次移动的位置作为道具优先生成点
+  const prefPos = lastMovePos;
+  lastMovePos = null; // 用后即弃，后续级联不覆盖
   // 只识别普通宝石的连线，道具不参与匹配
   const hRuns = []; // {row, startCol, endCol, len, gem}
   const vRuns = []; // {col, startRow, endRow, len, gem}
@@ -1229,11 +1252,18 @@ function analyzeBoard() {
   const powerups = [];
   const reserved = new Set(); // 已预留给道具的位置（不再清除）
 
+  // 辅助：判断prefPos是否在某个run中
+  function inRun(p, run) {
+    if (run.row !== undefined) return p.row === run.row && p.col >= run.startCol && p.col <= run.endCol;
+    return p.col === run.col && p.row >= run.startRow && p.row <= run.endRow;
+  }
+
   // 1) 5+连线 → 彩虹（全屏）
   for (const run of [...hRuns, ...vRuns]) {
     if (run.len < 5) continue;
     let midR, midC;
-    if (run.row !== undefined) { midR = run.row; midC = run.startCol + Math.floor(run.len / 2); }
+    if (prefPos && inRun(prefPos, run)) { midR = prefPos.row; midC = prefPos.col; }
+    else if (run.row !== undefined) { midR = run.row; midC = run.startCol + Math.floor(run.len / 2); }
     else { midR = run.startRow + Math.floor(run.len / 2); midC = run.col; }
     const key = `${midR},${midC}`;
     if (reserved.has(key)) continue;
@@ -1243,7 +1273,7 @@ function analyzeBoard() {
 
   // 2) T/L 形（横竖相交）→ 炸弹（5×5）
   for (const h of hRuns) {
-    if (h.len >= 5) continue; // 5连线已被彩虹处理
+    if (h.len >= 5) continue;
     for (const v of vRuns) {
       if (v.len >= 5) continue;
       // 找交点
@@ -1251,10 +1281,12 @@ function analyzeBoard() {
         if (c !== v.col) continue;
         for (let r = v.startRow; r <= v.endRow; r++) {
           if (r !== h.row) continue;
-          // 交点 (r, c)
-          const key = `${r},${c}`;
+          // 优先使用prefPos
+          const pr = (prefPos && prefPos.row === r && prefPos.col === c) ? prefPos.row : r;
+          const pc = (prefPos && prefPos.row === r && prefPos.col === c) ? prefPos.col : c;
+          const key = `${pr},${pc}`;
           if (reserved.has(key)) continue;
-          powerups.push({row: r, col: c, type: POWERUP_BOMB});
+          powerups.push({row: pr, col: pc, type: POWERUP_BOMB});
           reserved.add(key);
         }
       }
@@ -1265,7 +1297,8 @@ function analyzeBoard() {
   for (const run of [...hRuns, ...vRuns]) {
     if (run.len !== 4) continue;
     let midR, midC;
-    if (run.row !== undefined) { midR = run.row; midC = run.startCol + 1; }
+    if (prefPos && inRun(prefPos, run)) { midR = prefPos.row; midC = prefPos.col; }
+    else if (run.row !== undefined) { midR = run.row; midC = run.startCol + 1; }
     else { midR = run.startRow + 1; midC = run.col; }
     const key = `${midR},${midC}`;
     if (reserved.has(key)) continue;
@@ -1279,16 +1312,16 @@ function analyzeBoard() {
       const gem = board[r][c];
       if (!isGem(gem)) continue;
       if (board[r][c+1] === gem && board[r+1][c] === gem && board[r+1][c+1] === gem) {
-        // 将 2×2 方块的 4 个格子加入清除列表
         for (let dr = 0; dr < 2; dr++)
           for (let dc = 0; dc < 2; dc++)
             clearSet.add(`${r+dr},${c+dc}`);
-        // 在右下角生成小炸弹（如果该位置未被更高优先级道具占用）
-        const key = `${r+1},${c+1}`;
-        if (!reserved.has(key)) {
-          powerups.push({row: r+1, col: c+1, type: POWERUP_SMALLBOMB});
-          reserved.add(key);
-        }
+        // 优先使用prefPos
+        const pr = (prefPos && prefPos.row >= r && prefPos.row <= r+1 && prefPos.col >= c && prefPos.col <= c+1) ? prefPos.row : r+1;
+        const pc = (prefPos && prefPos.row >= r && prefPos.row <= r+1 && prefPos.col >= c && prefPos.col <= c+1) ? prefPos.col : c+1;
+        const key = `${pr},${pc}`;
+        if (reserved.has(key)) continue;
+        powerups.push({row: pr, col: pc, type: POWERUP_SMALLBOMB});
+        reserved.add(key);
       }
     }
   }
@@ -1376,7 +1409,11 @@ function renderBoard(newCells = [], matchedCells = []) {
       const val = board[r][c];
       if (val) {
         cell.classList.add(val);
-        cell.textContent = GEM_EMOJI[val] || POWERUP_EMOJI[val] || '';
+        if (isPowerup(val) && POWERUP_SVG[val]) {
+          cell.innerHTML = POWERUP_SVG[val];
+        } else {
+          cell.textContent = GEM_EMOJI[val] || '';
+        }
         if (isPowerup(val)) {
           cell.title = `双击触发 · ${POWERUP_NAMES[val]}`;
         }
@@ -1518,7 +1555,8 @@ async function trySwap(r1, c1, r2, c2) {
     return;
   }
 
-  // 有效交换
+  // 有效交换——记录移动目标位置，道具将在该位置生成
+  lastMovePos = {row: r2, col: c2};
   movesLeft--;
   comboCount = 0;
   updateUI();
