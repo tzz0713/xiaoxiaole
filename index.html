@@ -1646,6 +1646,13 @@ async function processCascade() {
     score += points;
     updateUI();
 
+    // 达到三星 → 立即通关，停止级联
+    if (score >= LEVELS[currentLevel].target) {
+      renderBoard();
+      await sleep(200);
+      return;
+    }
+
     // 粒子效果（清除格 + 道具生成格都算）
     const allCleared = [...result.matches, ...result.powerups.map(p => ({row: p.row, col: p.col}))];
     spawnParticles(allCleared);
