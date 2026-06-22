@@ -1045,6 +1045,17 @@
     margin-top: 16px; font-size: 0.8rem; color: rgba(255,255,255,0.3);
     letter-spacing: 2px;
   }
+  .loading-ring-wrap {
+    position: relative; margin-top: 24px; width: 72px; height: 72px;
+    display: flex !important; align-items: center; justify-content: center;
+    visibility: visible !important; opacity: 1 !important;
+  }
+  .loading-ring { width: 72px; height: 72px; display: block !important; }
+  .ring-fill { transition: stroke-dashoffset 0.35s ease; }
+  .ring-pct {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.5);
+  }
 
   @media (max-width: 480px) {
     .cover-title { font-size: 2.4rem; letter-spacing: 4px; }
@@ -1132,6 +1143,20 @@
   <div class="loading-title">超 级 消 除</div>
   <div class="loading-bar-track"><div class="loading-bar-fill" id="loadingFill"></div></div>
   <div class="loading-text" id="loadingText">正在载入...</div>
+  <div class="loading-ring-wrap">
+    <svg class="loading-ring" viewBox="0 0 60 60">
+      <circle class="ring-bg" cx="30" cy="30" r="26" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="4"/>
+      <circle class="ring-fill" id="ringFill" cx="30" cy="30" r="26" fill="none" stroke="url(#ringGrad)" stroke-width="4"
+        stroke-linecap="round" stroke-dasharray="163.36" stroke-dashoffset="163.36" transform="rotate(-90,30,30)"/>
+      <defs>
+        <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#e94560"/>
+          <stop offset="100%" stop-color="#f5c518"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <span class="ring-pct" id="ringPct">0%</span>
+  </div>
 </div>
 
 <!-- ======== BGM 按钮 ======== -->
@@ -2255,13 +2280,13 @@ function renderSaveSlots() {
     const data = getSaveData(i);
     const el = document.getElementById('slotStatus' + i);
     if (data && data.levelStars) {
-      const total = data.levelStars.reduce((a, b) => a + b, 0);
+      const totalStars = data.levelStars.reduce((a, b) => a + b, 0);
       let lastLv = 0; for (let j = data.levelStars.length - 1; j >= 0; j--) { if (data.levelStars[j] >= 1) { lastLv = j + 1; break; } }
-      const starsStr = '⭐'.repeat(Math.min(3, Math.max(0, data.levelStars[lastLv - 1] || 0)));
+      const completedCount = data.levelStars.filter(s => s >= 1).length;
       el.parentElement.className = 'save-slot' + (currentSaveSlot === i ? ' active' : '');
       el.innerHTML = `
-        <div class="slot-status has-data">📊 进度 ${total}/120 ⭐</div>
-        <div class="slot-level">🎯 至第 ${lastLv || 1} 关</div>
+        <div class="slot-status has-data">🎯 ${completedCount}/40 关</div>
+        <div class="slot-level">⭐ ${totalStars} 颗星 · 至第 ${lastLv || 1} 关</div>
         <div class="slot-time">${data.lastPlayed || ''}</div>
       `;
     } else {
@@ -2363,23 +2388,28 @@ function startGame() {
   const btn = document.getElementById('startBtn');
   btn.disabled = true;
   btn.textContent = '加载中...';
-  // 显示加载界面
+  // 隐藏封面 + 显示加载界面
+  document.getElementById('coverScreen').style.display = 'none';
   const loading = document.getElementById('loadingScreen');
-  loading.style.display = '';
+  loading.style.display = 'flex';
   const fill = document.getElementById('loadingFill');
   const text = document.getElementById('loadingText');
+  const ring = document.getElementById('ringFill');
+  const pctLabel = document.getElementById('ringPct');
+  const circumference = 163.36;
   const tips = ['正在准备猫咪... 🐱', '搭建消除棋盘... ✨', '召唤宝石... 💎', '就差一点了... ⏳', '加载完成! 🎉'];
   let pct = 0;
   const step = () => {
     pct += Math.random() * 8 + 3;
     if (pct > 100) pct = 100;
     fill.style.width = pct + '%';
+    ring.style.strokeDashoffset = circumference * (1 - pct / 100);
+    pctLabel.textContent = Math.round(pct) + '%';
     text.textContent = tips[Math.min(Math.floor(pct / 20), tips.length - 1)];
     if (pct < 100) setTimeout(step, 180 + Math.random() * 120);
     else {
       setTimeout(() => {
         loading.style.display = 'none';
-        document.getElementById('coverScreen').style.display = 'none';
         btn.disabled = false;
         btn.textContent = '开 始 游 戏';
         showMapView(0);
@@ -2741,12 +2771,6 @@ function startLevel() {
     shuffleBoard();
     renderBoard();
   }
-}
-
-function saveProgress() {
-  localStorage.setItem('xiaoxiaole_progress', JSON.stringify({
-    levelStars: levelStars,
-  }));
 }
 
 function goToLevelSelect() {
