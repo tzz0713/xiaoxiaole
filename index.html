@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✨ 消消乐 - 关卡制</title>
+<style>
+  :root {
+    --bg: #1a1a2e;
+    --panel: #16213e;
+    --accent: #e94560;
+    --gold: #f5c518;
+    --text: #eee;
+    --cell-size: 56px;
+    --gap: 4px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(233,68,96,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 50%, rgba(72,149,239,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 0%, rgba(245,197,24,0.06) 0%, transparent 50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    padding: 10px;
+  }
+
+  .game-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 36px;
+    padding: 20px;
+    width: 100%;
+    max-width: 520px;
+  }
+
+  /* ---- 顶部标题栏 ---- */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .header .logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #f5c518, #ff6b6b, #e94560);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+    filter: drop-shadow(0 2px 4px rgba(233,68,96,0.4));
+  }
+  .header .level-badge {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.78rem;
+    padding: 3px 12px;
+    border-radius: 14px;
+    letter-spacing: 1px;
+    box-shadow: 0 3px 10px rgba(233,68,96,0.3);
+  }
+  .header .chapter-tag {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+    font-weight: 600;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 10px;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+
+  /* ---- 信息面板 ---- */
+  .info-panel {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .info-item {
+    background: var(--panel);
+    border-radius: 12px;
+    padding: 10px 18px;
+    text-align: center;
+    min-width: 72px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .info-item .label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 3px;
+  }
+  .info-item .value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .info-item .value.combo { color: #ff9f43; }
+  .info-item .value.target { color: var(--gold); }
+
+  /* ---- 进度条 ---- */
+  .progress-wrap {
+    width: 100%;
+    max-width: 440px;
+  }
+  .progress-bar-bg {
+    background: var(--panel);
+    border-radius: 10px;
+    height: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    position: relative;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e94560, #f5c518);
+    border-radius: 10px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  .progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 1px; top: 1px; bottom: 1px;
+    width: 8px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 50%;
+  }
+  .progress-stars {
+    display: flex;
+    justify-content: space-between;
+    padding: 1px 2px;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.35);
+  }
+  .progress-stars span.reached { color: var(--gold); }
+
+  /* ---- 游戏面板 ---- */
+  .board {
+    display: grid;
+    grid-template-columns: repeat(8, var(--cell-size));
+    grid-template-rows: repeat(8, var(--cell-size));
+    gap: var(--gap);
+    padding: 12px;
+    background: var(--panel);
+    border-radius: 16px;
+    box-shadow:
+      0 10px 32px rgba(0,0,0,0.5),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    border-radius: 12px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.9rem;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .cell:hover {
+    transform: scale(1.06);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.4), inset 0 2px 0 rgba(255,255,255,0.25);
+  }
+  .cell:active {
+    transform: scale(0.94);
+    transition: transform 0.08s ease;
+  }
+  .cell.selected {
+    animation: pulse 0.7s ease-in-out infinite;
+    box-shadow: 0 0 0 3px #fff, 0 0 20px rgba(255,255,255,0.5), inset 0 2px 0 rgba(255,255,255,0.3);
+    z-index: 2;
+  }
+  .cell.matched {
+    animation: popOut 0.35s ease forwards;
+  }
+  .cell.new-spawn {
+    animation: dropIn 0.35s ease-out;
+  }
+  .cell.hint-glow {
+    animation: hintPulse 0.6s ease-in-out 3;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  @keyframes popOut {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.25); opacity: 0.7; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+  @keyframes dropIn {
+    0% { transform: translateY(-60px); opacity: 0; }
+    60% { transform: translateY(4px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes hintPulse {
+    0%, 100% { box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.2); }
+    50% { box-shadow: 0 0 16px rgba(255,255,255,0.7), 0 0 30px rgba(255,255,255,0.3); }
+  }
+
+  /* ---- 换位动画 ---- */
+  .cell.swap-from-left  { animation: swapSlideLeft  0.22s ease; z-index: 3; }
+  .cell.swap-from-right { animation: swapSlideRight 0.22s ease; z-index: 3; }
+  .cell.swap-from-up    { animation: swapSlideUp    0.22s ease; z-index: 3; }
+  .cell.swap-from-down  { animation: swapSlideDown  0.22s ease; z-index: 3; }
+  .cell.swap-invalid    { animation: swapShake 0.35s ease; z-index: 3; }
+
+  @keyframes swapSlideLeft {
+    0%   { transform: translateX(calc(-1 * (var(--cell-size) + var(--gap)))); }
+    100% { transform: translateX(0); }
+  }
+  @keyframes swapSlideRight {
+    0%   { transform: translateX(calc(var(--cell-size) + var(--gap))); }
+    100% { transform: translateX(0); }
+  }
+  @keyframes swapSlideUp {
+    0%   { transform: translateY(calc(-1 * (var(--cell-size) + var(--gap)))); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes swapSlideDown {
+    0%   { transform: translateY(calc(var(--cell-size) + var(--gap))); }
+    100% { transform: translateY(0); }
+  }
+  @keyframes swapShake {
+    0%, 100% { transform: translateX(0); }
+    15%  { transform: translateX(calc(-0.15 * var(--cell-size))); }
+    30%  { transform: translateX(calc(0.15 * var(--cell-size))); }
+    45%  { transform: translateX(calc(-0.12 * var(--cell-size))); }
+    60%  { transform: translateX(calc(0.12 * var(--cell-size))); }
+    75%  { transform: translateX(calc(-0.06 * var(--cell-size))); }
+    90%  { transform: translateX(calc(0.06 * var(--cell-size))); }
+  }
+
+  /* ---- 宝石颜色 ---- */
+  .gem-red    { background: linear-gradient(135deg, #ff6b6b, #c0392b); }
+  .gem-orange { background: linear-gradient(135deg, #ff9f43, #e67e22); }
+  .gem-yellow { background: linear-gradient(135deg, #feca57, #f0c040); }
+  .gem-green  { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+  .gem-blue   { background: linear-gradient(135deg, #54a0ff, #2e86de); }
+  .gem-purple { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+
+  /* ---- 道具样式 ---- */
+  .powerup-firework {
+    background: linear-gradient(135deg, #ffd700, #ff8c00) !important;
+    animation: fireworkGlow 0.8s ease-in-out infinite;
+    box-shadow: 0 0 18px rgba(255, 215, 0, 0.7), inset 0 2px 0 rgba(255,255,255,0.3);
+  }
+  .powerup-bomb {
+    background: linear-gradient(135deg, #333, #000) !important;
+    animation: bombPulse 0.6s ease-in-out infinite;
+    box-shadow: 0 0 18px rgba(255, 50, 50, 0.8), inset 0 2px 0 rgba(255,255,255,0.15);
+  }
+  .powerup-rainbow {
+    background: linear-gradient(135deg, #ff6b6b, #feca57, #2ecc71, #54a0ff, #a29bfe) !important;
+    animation: rainbowCycle 1.5s linear infinite;
+    box-shadow: 0 0 22px rgba(255,255,255,0.8), 0 0 40px rgba(200,150,255,0.5);
+  }
+  .powerup-smallbomb {
+    background: linear-gradient(135deg, #ff6348, #c0392b) !important;
+    animation: smallBombPulse 0.55s ease-in-out infinite;
+    box-shadow: 0 0 14px rgba(255, 80, 40, 0.7), inset 0 2px 0 rgba(255,255,255,0.2);
+  }
+  @keyframes fireworkGlow {
+    0%, 100% { box-shadow: 0 0 18px rgba(255, 215, 0, 0.7), inset 0 2px 0 rgba(255,255,255,0.3); }
+    50% { box-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 50px rgba(255, 140, 0, 0.5), inset 0 2px 0 rgba(255,255,255,0.3); }
+  }
+  @keyframes bombPulse {
+    0%, 100% { box-shadow: 0 0 18px rgba(255, 50, 50, 0.8), inset 0 2px 0 rgba(255,255,255,0.15); transform: scale(1); }
+    50% { box-shadow: 0 0 28px rgba(255, 50, 50, 1), inset 0 2px 0 rgba(255,255,255,0.2); transform: scale(1.04); }
+  }
+  @keyframes smallBombPulse {
+    0%, 100% { box-shadow: 0 0 14px rgba(255, 80, 40, 0.7), inset 0 2px 0 rgba(255,255,255,0.2); transform: scale(1); }
+    50% { box-shadow: 0 0 22px rgba(255, 80, 40, 1), inset 0 2px 0 rgba(255,255,255,0.25); transform: scale(1.03); }
+  }
+  @keyframes rainbowCycle {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+  }
+
+  /* 激活闪光 */
+  .cell.powerup-activating {
+    animation: powerupFlash 0.5s ease-out forwards !important;
+    z-index: 5;
+  }
+  @keyframes powerupFlash {
+    0% { transform: scale(1); opacity: 1; }
+    30% { transform: scale(1.5); opacity: 1; filter: brightness(2); }
+    100% { transform: scale(2); opacity: 0; filter: brightness(3); }
+  }
+
+  /* 行/列清除线 */
+  .clear-beam {
+    position: fixed;
+    pointer-events: none;
+    z-index: 150;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
+    animation: beamFlash 0.6s ease-out forwards;
+  }
+  .clear-beam.horizontal { height: 4px; border-radius: 2px; }
+  .clear-beam.vertical { width: 4px; border-radius: 2px; }
+  @keyframes beamFlash {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* 全屏闪光 */
+  .screen-flash {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 300;
+    background: white;
+    animation: screenFlash 0.6s ease-out forwards;
+  }
+  @keyframes screenFlash {
+    0% { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+
+  /* ---- 弹窗/遮罩 ---- */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  .modal {
+    background: var(--panel);
+    border-radius: 24px;
+    padding: 36px 32px;
+    text-align: center;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.08);
+    animation: modalIn 0.35s ease;
+  }
+  @keyframes modalIn {
+    0% { transform: scale(0.85) translateY(20px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .modal h2 {
+    font-size: 1.8rem;
+    color: var(--gold);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .modal .stars-display {
+    font-size: 3rem;
+    margin: 12px 0;
+    letter-spacing: 8px;
+  }
+  .modal .stars-display .star {
+    display: inline-block;
+    animation: starPop 0.5s ease backwards;
+  }
+  .modal .stars-display .star:nth-child(1) { animation-delay: 0.1s; }
+  .modal .stars-display .star:nth-child(2) { animation-delay: 0.3s; }
+  .modal .stars-display .star:nth-child(3) { animation-delay: 0.5s; }
+  .modal .stars-display .star.earned { color: var(--gold); }
+  .modal .stars-display .star.empty { color: rgba(255,255,255,0.15); }
+  @keyframes starPop {
+    0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+    60% { transform: scale(1.3) rotate(5deg); }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+  .modal .score-final {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #fff;
+    margin: 8px 0;
+  }
+  .modal .detail {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  /* ---- 粒子 ---- */
+  .particle {
+    position: fixed;
+    pointer-events: none;
+    font-size: 1.6rem;
+    z-index: 200;
+    animation: particleFly 0.9s ease-out forwards;
+  }
+  @keyframes particleFly {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+  }
+
+  /* ---- 连击提示 ---- */
+  .combo-pop {
+    position: fixed;
+    pointer-events: none;
+    z-index: 200;
+    font-weight: 900;
+    font-size: 1.8rem;
+    color: #f5c518;
+    text-shadow: 0 0 20px rgba(245,197,24,0.8), 0 2px 8px rgba(0,0,0,0.5);
+    animation: comboRise 1.2s ease-out forwards;
+  }
+  @keyframes comboRise {
+    0% { transform: translateY(0) scale(0.5); opacity: 1; }
+    50% { transform: translateY(-40px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-90px) scale(0.8); opacity: 0; }
+  }
+
+  /* ---- 响应式 ---- */
+  @media (max-width: 560px) {
+    :root { --cell-size: 40px; --gap: 3px; }
+    .board { padding: 8px; border-radius: 14px; }
+    .cell { border-radius: 8px; font-size: 1.4rem; }
+    .header .logo { font-size: 1.4rem; }
+    .info-item { padding: 8px 14px; min-width: 68px; }
+    .info-item .value { font-size: 1.2rem; }
+  }
+
+  /* ======== 选择界面 ======== */
+  .select-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    width: 100%;
+    max-width: 480px;
+    padding: 14px;
+    animation: fadeSlideIn 0.3s ease;
+  }
+  @keyframes fadeSlideIn {
+    0% { opacity: 0; transform: translateY(12px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .screen-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 1px;
+    text-align: center;
+  }
+  .screen-subtitle {
+    color: rgba(255,255,255,0.4);
+    font-size: 0.8rem;
+    margin-top: -22px;
+  }
+  .chapter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+  }
+  .chapter-card {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 22px 24px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+  .chapter-card:hover:not(.locked) { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
+  .chapter-card:active:not(.locked) { transform: scale(0.98); }
+  .chapter-card.locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(30%); }
+  .chapter-card .ch-header { display: flex; justify-content: space-between; align-items: center; }
+  .chapter-card .ch-index {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .chapter-card .ch-lock { font-size: 1.2rem; opacity: 0.7; }
+  .chapter-card .ch-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 8px 0 8px;
+  }
+  .chapter-card .ch-meta { display: flex; gap: 16px; color: rgba(255,255,255,0.45); font-size: 0.78rem; }
+  .chapter-card .ch-meta span { display:flex; align-items:center; gap:4px; }
+  .chapter-card .ch-stars { color: var(--gold); }
+  .chapter-card .ch-progress-bar {
+    margin-top: 12px;
+    height: 5px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .chapter-card .ch-progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+  .chapter-card.ch1 { border-left: 4px solid #ff6b6b; }
+  .chapter-card.ch2 { border-left: 4px solid #feca57; }
+  .chapter-card.ch3 { border-left: 4px solid #54a0ff; }
+  .chapter-card.ch4 { border-left: 4px solid #a29bfe; }
+
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    width: 100%;
+  }
+  .level-card {
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 18px 8px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.15s ease;
+    position: relative;
+  }
+  .level-card:hover:not(.locked) { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
+  .level-card:active:not(.locked) { transform: scale(0.95); }
+  .level-card.locked { opacity: 0.4; cursor: not-allowed; }
+  .level-card.completed { border-color: rgba(245,197,24,0.25); }
+  .level-card .lv-num { font-size: 1.4rem; font-weight: 900; color: #fff; }
+  .level-card .lv-name { font-size: 0.68rem; color: rgba(255,255,255,0.45); margin: 2px 0; }
+  .level-card .lv-stars { font-size: 0.85rem; letter-spacing: 1px; }
+  .level-card .lv-stars .s-on  { color: var(--gold); }
+  .level-card .lv-stars .s-off { color: rgba(255,255,255,0.1); }
+  .level-card .lv-target { font-size: 0.62rem; color: rgba(255,255,255,0.25); margin-top: 2px; }
+  .level-card .lv-lock-icon { position: absolute; right: 6px; top: 4px; font-size: 0.85rem; opacity: 0.5; }
+
+  .back-btn {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.55);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 16px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: inherit;
+  }
+  .back-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
+
+  /* 按钮 */
+  .btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 26px;
+    border-radius: 22px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.15s ease;
+    box-shadow: 0 4px 14px rgba(233,68,96,0.3);
+    outline: none;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(233,68,96,0.4); }
+  .btn:active { transform: translateY(0); }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: none;
+    color: rgba(255,255,255,0.75);
+    padding: 9px 18px;
+    font-size: 0.85rem;
+  }
+  .btn-secondary:hover { box-shadow: 0 2px 10px rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.4); }
+  .btn-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+  @media (max-width: 480px) {
+    :root { --cell-size: 38px; --gap: 2px; }
+    .board { padding: 6px; border-radius: 12px; }
+    .cell { border-radius: 8px; font-size: 1.15rem; }
+    .game-wrapper { gap: 22px; padding: 12px; }
+    .select-screen { gap: 20px; padding: 8px; }
+    .chapter-list { gap: 12px; }
+    .level-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .level-card { padding: 12px 4px; border-radius: 10px; }
+    .level-card .lv-num { font-size: 1.1rem; }
+    .chapter-card { padding: 16px 18px; }
+    .chapter-card .ch-name { font-size: 1.05rem; }
+    .info-panel { gap: 10px; }
+    .info-item { padding: 8px 12px; min-width: 56px; }
+    .info-item .value { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-wrapper" id="gameWrapper">
+  <!-- ======== 篇章选择界面 ======== -->
+  <div class="select-screen" id="chapterScreen">
+    <div class="screen-title">✨ 消消乐</div>
+    <div class="screen-subtitle">选择篇章</div>
+    <div class="chapter-list" id="chapterList"></div>
+  </div>
+
+  <!-- ======== 关卡选择界面 ======== -->
+  <div class="select-screen" id="levelScreen" style="display:none;">
+    <button class="back-btn" id="btnBackToChapter">← 返回篇章</button>
+    <div class="screen-title" id="levelScreenTitle">第一篇章 · 初入江湖</div>
+    <div class="screen-subtitle">选择关卡</div>
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+
+  <!-- ======== 游戏界面 ======== -->
+  <div id="gameScreen" style="display:none;">
+    <div class="header">
+      <span class="logo">✨ 消消乐</span>
+      <span class="chapter-tag" id="chapterTag">第一篇章</span>
+      <span class="level-badge" id="levelBadge">第 1 关</span>
+    </div>
+
+    <div class="info-panel">
+      <div class="info-item">
+        <div class="label">⭐ 分数</div>
+        <div class="value" id="scoreDisplay">0</div>
+      </div>
+      <div class="info-item">
+        <div class="label">🎯 目标</div>
+        <div class="value target" id="targetDisplay">1000</div>
+      </div>
+      <div class="info-item">
+        <div class="label">🔥 连击</div>
+        <div class="value combo" id="comboDisplay">x1</div>
+      </div>
+      <div class="info-item">
+        <div class="label">👆 步数</div>
+        <div class="value" id="movesDisplay">30</div>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      <div class="progress-stars" id="progressStars">
+        <span>★</span><span>★</span><span>★</span>
+      </div>
+    </div>
+
+    <div class="board-container">
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="btnHint" title="提示">💡 提示</button>
+      <button class="btn btn-secondary" id="btnRestart">🔄 重新开始</button>
+      <button class="btn btn-secondary" id="btnBackToLevels">📋 关卡选择</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗容器 -->
+<div class="overlay" id="overlay" style="display:none;"></div>
+
+<script>
+// ==================== 游戏引擎 ====================
+
+const ROWS = 8;
+const COLS = 8;
+const GEM_TYPES = ['gem-red','gem-orange','gem-yellow','gem-green','gem-blue','gem-purple'];
+const GEM_EMOJI = { 'gem-red':'🔴', 'gem-orange':'🟠', 'gem-yellow':'🟡', 'gem-green':'🟢', 'gem-blue':'🔵', 'gem-purple':'🟣' };
+const POWERUP_FIREWORK = 'powerup-firework';
+const POWERUP_BOMB = 'powerup-bomb';
+const POWERUP_RAINBOW = 'powerup-rainbow';
+const POWERUP_SMALLBOMB = 'powerup-smallbomb';
+const POWERUP_TYPES = [POWERUP_FIREWORK, POWERUP_BOMB, POWERUP_RAINBOW, POWERUP_SMALLBOMB];
+const POWERUP_EMOJI = { 'powerup-firework':'🎆', 'powerup-bomb':'💣', 'powerup-rainbow':'🌈', 'powerup-smallbomb':'💥' };
+const POWERUP_NAMES = { 'powerup-firework':'烟花', 'powerup-bomb':'炸弹', 'powerup-rainbow':'彩虹', 'powerup-smallbomb':'小炸弹' };
+function isPowerup(cell) { return cell && POWERUP_TYPES.includes(cell); }
+function isGem(cell) { return cell && GEM_TYPES.includes(cell); }
+
+// ---- 关卡配置 ----
+const LEVELS = [
+  // ===== 第一篇章：初入江湖 =====
+  { level: 1,  target: 600,   moves: 30, name: '初次尝试' },
+  { level: 2,  target: 1200,  moves: 29, name: '小试牛刀' },
+  { level: 3,  target: 2000,  moves: 29, name: '渐入佳境' },
+  { level: 4,  target: 3000,  moves: 28, name: '步步为营' },
+  { level: 5,  target: 4200,  moves: 28, name: '略有小成' },
+  // ===== 第二篇章：渐露锋芒 =====
+  { level: 6,  target: 5600,  moves: 27, name: '驾轻就熟' },
+  { level: 7,  target: 7200,  moves: 27, name: '融会贯通' },
+  { level: 8,  target: 9000,  moves: 26, name: '游刃有余' },
+  { level: 9,  target: 11000, moves: 26, name: '炉火纯青' },
+  { level: 10, target: 13500, moves: 25, name: '高手过招' },
+  // ===== 第三篇章：登峰造极 =====
+  { level: 11, target: 8000,  moves: 27, name: '新的征程' },
+  { level: 12, target: 10000, moves: 26, name: '乘风破浪' },
+  { level: 13, target: 12500, moves: 26, name: '势如破竹' },
+  { level: 14, target: 15500, moves: 25, name: '所向披靡' },
+  { level: 15, target: 19000, moves: 25, name: '横扫千军' },
+  // ===== 第四篇章：超凡入圣 =====
+  { level: 16, target: 13000, moves: 26, name: '王者归来' },
+  { level: 17, target: 16500, moves: 25, name: '巅峰对决' },
+  { level: 18, target: 20500, moves: 24, name: '超凡入圣' },
+  { level: 19, target: 25500, moves: 23, name: '天下无双' },
+  { level: 20, target: 32000, moves: 22, name: '消消乐之神' },
+];
+
+// ---- 状态 ----
+let board = [];
+let score = 0;
+let movesLeft = 0;
+let currentLevel = 0;     // 当前正在玩的关卡 index (0-19)
+let selectedCell = null;
+let comboCount = 0;
+let isProcessing = false;
+let hintCells = [];
+let swapAnimCells = [];  // [{row, col, cls}] 换位动画
+let levelStars = new Array(20).fill(0);
+
+// ---- DOM 引用 ----
+const boardEl       = document.getElementById('board');
+const scoreEl       = document.getElementById('scoreDisplay');
+const targetEl      = document.getElementById('targetDisplay');
+const comboEl       = document.getElementById('comboDisplay');
+const movesEl       = document.getElementById('movesDisplay');
+const progressFill  = document.getElementById('progressFill');
+const progressStars = document.getElementById('progressStars');
+const levelBadge    = document.getElementById('levelBadge');
+const chapterTag    = document.getElementById('chapterTag');
+const overlay       = document.getElementById('overlay');
+const gameScreen    = document.getElementById('gameScreen');
+const chapterScreen = document.getElementById('chapterScreen');
+const levelScreen   = document.getElementById('levelScreen');
+const chapterList   = document.getElementById('chapterList');
+const levelGrid     = document.getElementById('levelGrid');
+const levelScreenTitle = document.getElementById('levelScreenTitle');
+
+// ==================== 核心逻辑 ====================
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function createBoard() {
+  board = [];
+  for (let r = 0; r < ROWS; r++) {
+    board[r] = [];
+    for (let c = 0; c < COLS; c++) {
+      board[r][c] = randomGem(r, c);
+    }
+  }
+  // 确保初始棋盘没有可消除的
+  while (findAllMatches().length > 0) {
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (isPartOfMatch(r, c)) {
+          board[r][c] = randomGem(r, c);
+        }
+      }
+    }
+  }
+}
+
+function randomGem(row, col) {
+  // 简单随机，但尽量避免初始三连和 2×2 方块
+  const candidates = [...GEM_TYPES];
+  // 排除会和左边两个形成三连的颜色
+  if (col >= 2 && board[row] && board[row][col-1] === board[row][col-2]) {
+    const exclude = board[row][col-1];
+    const idx = candidates.indexOf(exclude);
+    if (idx >= 0) candidates.splice(idx, 1);
+  }
+  // 排除会和上面两个形成三连的颜色
+  if (row >= 2 && board[row-1] && board[row-2] && board[row-1][col] === board[row-2][col]) {
+    const exclude = board[row-1][col];
+    const idx = candidates.indexOf(exclude);
+    if (idx >= 0 && candidates.length > 1) candidates.splice(idx, 1);
+  }
+  // 排除会形成 2×2 方块的颜色（右下角 & 左下角）
+  if (row > 0) {
+    const exclude2x2 = new Set();
+    // 作为 2×2 右下角：左上、上、左都相同
+    if (col > 0 && board[row-1][col-1] === board[row-1][col] && board[row-1][col] === board[row][col-1]) {
+      exclude2x2.add(board[row-1][col]);
+    }
+    // 作为 2×2 左下角：右上、上、右都相同
+    if (col < COLS - 1 && board[row-1][col] === board[row-1][col+1] && board[row-1][col+1] === board[row][col+1]) {
+      exclude2x2.add(board[row-1][col]);
+    }
+    for (const ex of exclude2x2) {
+      const idx = candidates.indexOf(ex);
+      if (idx >= 0 && candidates.length > 1) candidates.splice(idx, 1);
+    }
+  }
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+// 检查某个普通宝石是否参与匹配（仅用于初始棋盘构建）
+function isPartOfMatch(row, col) {
+  const gem = board[row]?.[col];
+  if (!isGem(gem)) return false;
+  // 横向三连+
+  let hCount = 1;
+  for (let c = col - 1; c >= 0 && board[row][c] === gem; c--) hCount++;
+  for (let c = col + 1; c < COLS && board[row][c] === gem; c++) hCount++;
+  if (hCount >= 3) return true;
+  // 纵向三连+
+  let vCount = 1;
+  for (let r = row - 1; r >= 0 && board[r][col] === gem; r--) vCount++;
+  for (let r = row + 1; r < ROWS && board[r][col] === gem; r++) vCount++;
+  if (vCount >= 3) return true;
+  // 2×2 方块检测
+  for (let dr = -1; dr <= 0; dr++) {
+    for (let dc = -1; dc <= 0; dc++) {
+      const r0 = row + dr, c0 = col + dc;
+      if (r0 < 0 || r0 >= ROWS - 1 || c0 < 0 || c0 >= COLS - 1) continue;
+      if (board[r0][c0] === gem && board[r0][c0+1] === gem &&
+          board[r0+1][c0] === gem && board[r0+1][c0+1] === gem) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// 分析棋盘：找出所有匹配 + 特殊图案对应的道具生成位置
+// 返回 { matches: [{row,col}], powerups: [{row,col,type}] }
+function analyzeBoard() {
+  // 只识别普通宝石的连线，道具不参与匹配
+  const hRuns = []; // {row, startCol, endCol, len, gem}
+  const vRuns = []; // {col, startRow, endRow, len, gem}
+
+  for (let r = 0; r < ROWS; r++) {
+    let c = 0;
+    while (c < COLS) {
+      if (!isGem(board[r][c])) { c++; continue; }
+      const gem = board[r][c];
+      let end = c;
+      while (end + 1 < COLS && board[r][end + 1] === gem) end++;
+      const len = end - c + 1;
+      if (len >= 3) hRuns.push({row: r, startCol: c, endCol: end, len, gem});
+      c = end + 1;
+    }
+  }
+
+  for (let c = 0; c < COLS; c++) {
+    let r = 0;
+    while (r < ROWS) {
+      if (!isGem(board[r][c])) { r++; continue; }
+      const gem = board[r][c];
+      let end = r;
+      while (end + 1 < ROWS && board[end + 1][c] === gem) end++;
+      const len = end - r + 1;
+      if (len >= 3) vRuns.push({col: c, startRow: r, endRow: end, len, gem});
+      r = end + 1;
+    }
+  }
+
+  // 收集所有需要清除的格子
+  const clearSet = new Set();
+  for (const run of hRuns)
+    for (let c = run.startCol; c <= run.endCol; c++) clearSet.add(`${run.row},${c}`);
+  for (const run of vRuns)
+    for (let r = run.startRow; r <= run.endRow; r++) clearSet.add(`${r},${run.col}`);
+
+  // 识别道具生成点（优先级：彩虹 > 炸弹 > 烟花）
+  const powerups = [];
+  const reserved = new Set(); // 已预留给道具的位置（不再清除）
+
+  // 1) 5+连线 → 彩虹（全屏）
+  for (const run of [...hRuns, ...vRuns]) {
+    if (run.len < 5) continue;
+    let midR, midC;
+    if (run.row !== undefined) { midR = run.row; midC = run.startCol + Math.floor(run.len / 2); }
+    else { midR = run.startRow + Math.floor(run.len / 2); midC = run.col; }
+    const key = `${midR},${midC}`;
+    if (reserved.has(key)) continue;
+    powerups.push({row: midR, col: midC, type: POWERUP_RAINBOW});
+    reserved.add(key);
+  }
+
+  // 2) T/L 形（横竖相交）→ 炸弹（5×5）
+  for (const h of hRuns) {
+    if (h.len >= 5) continue; // 5连线已被彩虹处理
+    for (const v of vRuns) {
+      if (v.len >= 5) continue;
+      // 找交点
+      for (let c = h.startCol; c <= h.endCol; c++) {
+        if (c !== v.col) continue;
+        for (let r = v.startRow; r <= v.endRow; r++) {
+          if (r !== h.row) continue;
+          // 交点 (r, c)
+          const key = `${r},${c}`;
+          if (reserved.has(key)) continue;
+          powerups.push({row: r, col: c, type: POWERUP_BOMB});
+          reserved.add(key);
+        }
+      }
+    }
+  }
+
+  // 3) 4连线 → 烟花（整行+整列）
+  for (const run of [...hRuns, ...vRuns]) {
+    if (run.len !== 4) continue;
+    let midR, midC;
+    if (run.row !== undefined) { midR = run.row; midC = run.startCol + 1; }
+    else { midR = run.startRow + 1; midC = run.col; }
+    const key = `${midR},${midC}`;
+    if (reserved.has(key)) continue;
+    powerups.push({row: midR, col: midC, type: POWERUP_FIREWORK});
+    reserved.add(key);
+  }
+
+  // 4) 2×2 方块 → 小炸弹（爆炸范围 3×3）
+  for (let r = 0; r < ROWS - 1; r++) {
+    for (let c = 0; c < COLS - 1; c++) {
+      const gem = board[r][c];
+      if (!isGem(gem)) continue;
+      if (board[r][c+1] === gem && board[r+1][c] === gem && board[r+1][c+1] === gem) {
+        // 将 2×2 方块的 4 个格子加入清除列表
+        for (let dr = 0; dr < 2; dr++)
+          for (let dc = 0; dc < 2; dc++)
+            clearSet.add(`${r+dr},${c+dc}`);
+        // 在右下角生成小炸弹（如果该位置未被更高优先级道具占用）
+        const key = `${r+1},${c+1}`;
+        if (!reserved.has(key)) {
+          powerups.push({row: r+1, col: c+1, type: POWERUP_SMALLBOMB});
+          reserved.add(key);
+        }
+      }
+    }
+  }
+
+  // 最终清除列表 = 所有匹配格子 - 预留给道具的位置
+  const matches = [];
+  for (const key of clearSet) {
+    if (reserved.has(key)) continue;
+    const [r, c] = key.split(',').map(Number);
+    matches.push({row: r, col: c});
+  }
+
+  return { matches, powerups };
+}
+
+// findAllMatches 兼容旧调用（仅返回需要清除的普通格子，不含道具生成点）
+function findAllMatches() {
+  return analyzeBoard().matches;
+}
+
+function applyGravity() {
+  const changes = [];
+  for (let c = 0; c < COLS; c++) {
+    let writeRow = ROWS - 1;
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (board[r][c] !== null) {
+        if (r !== writeRow) {
+          board[writeRow][c] = board[r][c];
+          board[r][c] = null;
+          changes.push({row: writeRow, col: c});
+        }
+        writeRow--;
+      }
+    }
+    // 填充空位
+    for (let r = writeRow; r >= 0; r--) {
+      board[r][c] = GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
+      changes.push({row: r, col: c, isNew: true});
+    }
+  }
+  return changes;
+}
+
+function swap(r1, c1, r2, c2) {
+  const tmp = board[r1][c1];
+  board[r1][c1] = board[r2][c2];
+  board[r2][c2] = tmp;
+}
+
+function isValidSwap(r1, c1, r2, c2) {
+  return Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
+}
+
+// ==================== 寻找可用交换 ====================
+function findValidMoves() {
+  const moves = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      // 只考虑普通宝石之间的交换
+      if (!isGem(board[r][c])) continue;
+      if (c + 1 < COLS && isGem(board[r][c+1])) {
+        swap(r, c, r, c+1);
+        if (findAllMatches().length > 0) moves.push({r1:r, c1:c, r2:r, c2:c+1});
+        swap(r, c, r, c+1);
+      }
+      if (r + 1 < ROWS && isGem(board[r+1]?.[c])) {
+        swap(r, c, r+1, c);
+        if (findAllMatches().length > 0) moves.push({r1:r, c1:c, r2:r+1, c2:c});
+        swap(r, c, r+1, c);
+      }
+    }
+  }
+  return moves;
+}
+
+// ==================== 渲染 ====================
+function renderBoard(newCells = [], matchedCells = []) {
+  boardEl.innerHTML = '';
+  const newSet = new Set(newCells.map(c => `${c.row},${c.col}`));
+  const matchedSet = new Set(matchedCells.map(c => `${c.row},${c.col}`));
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      const val = board[r][c];
+      if (val) {
+        cell.classList.add(val);
+        cell.textContent = GEM_EMOJI[val] || POWERUP_EMOJI[val] || '';
+        if (isPowerup(val)) {
+          cell.title = `双击触发 · ${POWERUP_NAMES[val]}`;
+        }
+      }
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+      if (selectedCell && selectedCell.row === r && selectedCell.col === c) {
+        cell.classList.add('selected');
+      }
+      if (matchedSet.has(`${r},${c}`)) {
+        cell.classList.add('matched');
+      } else if (newSet.has(`${r},${c}`)) {
+        cell.classList.add('new-spawn');
+      }
+      if (hintCells.some(h => h.row === r && h.col === c)) {
+        cell.classList.add('hint-glow');
+      }
+
+      // 换位动画
+      const sa = swapAnimCells.find(s => s.row === r && s.col === c);
+      if (sa) cell.classList.add(sa.cls);
+
+      // 点击与双击处理
+      cell.addEventListener('click', () => onCellClick(r, c));
+      if (isPowerup(val)) {
+        cell.addEventListener('dblclick', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          activatePowerup(r, c);
+        });
+        cell.style.cursor = 'pointer';
+      }
+
+      boardEl.appendChild(cell);
+    }
+  }
+}
+
+function updateUI() {
+  const lv = LEVELS[currentLevel];
+  scoreEl.textContent = score.toLocaleString();
+  targetEl.textContent = lv.target.toLocaleString();
+  comboEl.textContent = 'x' + comboCount;
+  movesEl.textContent = movesLeft;
+  const pct = Math.min(100, Math.round((score / lv.target) * 100));
+  progressFill.style.width = pct + '%';
+
+  const star1 = lv.target * 0.5;
+  const star2 = lv.target * 0.85;
+  const star3 = lv.target;
+  const stars = progressStars.querySelectorAll('span');
+  stars[0].className = score >= star1 ? 'reached' : '';
+  stars[1].className = score >= star2 ? 'reached' : '';
+  stars[2].className = score >= star3 ? 'reached' : '';
+
+  levelBadge.textContent = `第 ${lv.level}/20 关 · ${lv.name}`;
+  const chIdx = lv.level <= 5 ? 0 : lv.level <= 10 ? 1 : lv.level <= 15 ? 2 : 3;
+  chapterTag.textContent = `${CHAPTERS[chIdx].name} · ${CHAPTERS[chIdx].subtitle}`;
+}
+
+// ==================== 交互 ====================
+function onCellClick(row, col) {
+  if (isProcessing) return;
+  const val = board[row][col];
+  if (!val) return;
+
+  // 道具不参与交换，仅双击触发
+  if (isPowerup(val)) return;
+
+  clearHints();
+
+  if (selectedCell === null) {
+    selectedCell = {row, col};
+    renderBoard();
+    return;
+  }
+
+  // 如果已选中的是道具，取消选中并重新选当前格
+  if (isPowerup(board[selectedCell.row]?.[selectedCell.col])) {
+    selectedCell = {row, col};
+    renderBoard();
+    return;
+  }
+
+  if (selectedCell.row === row && selectedCell.col === col) {
+    selectedCell = null;
+    renderBoard();
+    return;
+  }
+
+  if (!isValidSwap(selectedCell.row, selectedCell.col, row, col)) {
+    selectedCell = {row, col};
+    renderBoard();
+    return;
+  }
+
+  // 目标格不能是道具
+  if (isPowerup(board[row][col])) return;
+
+  // 执行交换
+  const sr = selectedCell.row, sc = selectedCell.col;
+  selectedCell = null;
+  trySwap(sr, sc, row, col);
+}
+
+async function trySwap(r1, c1, r2, c2) {
+  isProcessing = true;
+  swap(r1, c1, r2, c2);
+
+  // 计算换位动画方向
+  const dr = r2 - r1, dc = c2 - c1;
+  // cell at (r1,c1) 现在的内容来自 (r2,c2)
+  const dir1 = dr === 0 ? (dc > 0 ? 'right' : 'left') : (dr > 0 ? 'down' : 'up');
+  // cell at (r2,c2) 现在的内容来自 (r1,c1)
+  const dir2 = dr === 0 ? (dc > 0 ? 'left' : 'right') : (dr > 0 ? 'up' : 'down');
+  swapAnimCells = [
+    {row: r1, col: c1, cls: `swap-from-${dir1}`},
+    {row: r2, col: c2, cls: `swap-from-${dir2}`},
+  ];
+  renderBoard();
+
+  // 等待换位动画播放
+  await sleep(250);
+  swapAnimCells = [];
+
+  const matches = findAllMatches();
+  if (matches.length === 0) {
+    // 无效交换，换回来（也带动画）
+    swap(r1, c1, r2, c2);
+    swapAnimCells = [
+      {row: r1, col: c1, cls: `swap-from-${dir1}`},
+      {row: r2, col: c2, cls: `swap-from-${dir2}`},
+    ];
+    renderBoard();
+    await sleep(250);
+    swapAnimCells = [];
+    renderBoard();
+    isProcessing = false;
+    return;
+  }
+
+  // 有效交换
+  movesLeft--;
+  comboCount = 0;
+  updateUI();
+  renderBoard();
+  await processCascade();
+
+  checkEndCondition();
+  isProcessing = false;
+}
+
+async function processCascade() {
+  let result = analyzeBoard();
+  while (result.matches.length > 0 || result.powerups.length > 0) {
+    comboCount++;
+    const totalCleared = result.matches.length + result.powerups.length;
+    const points = totalCleared * 10 * comboCount;
+    score += points;
+    updateUI();
+
+    // 粒子效果（清除格 + 道具生成格都算）
+    const allCleared = [...result.matches, ...result.powerups.map(p => ({row: p.row, col: p.col}))];
+    spawnParticles(allCleared);
+    if (comboCount >= 3) spawnComboPop(comboCount);
+
+    // 清除普通格子
+    for (const m of result.matches) {
+      board[m.row][m.col] = null;
+    }
+    // 在道具生成位置放置道具
+    for (const p of result.powerups) {
+      board[p.row][p.col] = p.type;
+    }
+    renderBoard([], allCleared);
+    await sleep(380);
+
+    // 重力 + 填充（道具也会受重力下落）
+    const changes = applyGravity();
+    renderBoard(changes, []);
+    await sleep(380);
+
+    // 再检查
+    result = analyzeBoard();
+  }
+  if (comboCount === 0) comboCount = 1;
+  comboEl.textContent = 'x' + comboCount;
+}
+
+function checkEndCondition() {
+  const lv = LEVELS[currentLevel];
+  if (score >= lv.target) {
+    let earnedStars;
+    if (score >= lv.target) earnedStars = 3;
+    else if (score >= lv.target * 0.85) earnedStars = 2;
+    else earnedStars = 1;
+    // 保留最高星级
+    if (earnedStars > levelStars[currentLevel]) {
+      levelStars[currentLevel] = earnedStars;
+    }
+    saveProgress();
+    showVictoryModal(earnedStars);
+    return;
+  }
+  if (movesLeft <= 0) {
+    showDefeatModal();
+    return;
+  }
+  if (findValidMoves().length === 0) {
+    shuffleBoard();
+    renderBoard();
+  }
+}
+
+function shuffleBoard() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      board[r][c] = GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
+    }
+  }
+  while (findAllMatches().length > 0 || findValidMoves().length === 0) {
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        board[r][c] = GEM_TYPES[Math.floor(Math.random() * GEM_TYPES.length)];
+      }
+    }
+  }
+}
+
+// ==================== 粒子效果 ====================
+function spawnParticles(cells) {
+  const boardRect = boardEl.getBoundingClientRect();
+  for (const {row, col} of cells) {
+    const cellEl = boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    if (!cellEl) continue;
+    const rect = cellEl.getBoundingClientRect();
+    const p = document.createElement('span');
+    p.className = 'particle';
+    p.textContent = cellEl.textContent;
+    p.style.left = (rect.left + rect.width/2) + 'px';
+    p.style.top = (rect.top + rect.height/2) + 'px';
+    p.style.setProperty('--dx', (Math.random() - 0.5) * 120 + 'px');
+    p.style.setProperty('--dy', (Math.random() - 0.5) * 120 - 40 + 'px');
+    document.body.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
+}
+
+function spawnComboPop(count) {
+  const boardRect = boardEl.getBoundingClientRect();
+  const pop = document.createElement('div');
+  pop.className = 'combo-pop';
+  pop.textContent = `🔥 ${count}连击!`;
+  pop.style.left = (boardRect.left + boardRect.width/2 - 60) + 'px';
+  pop.style.top = (boardRect.top + boardRect.height/2) + 'px';
+  document.body.appendChild(pop);
+  pop.addEventListener('animationend', () => pop.remove());
+}
+
+function shakeCell(row, col) {
+  const cellEl = boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+  if (!cellEl) return;
+  cellEl.style.animation = 'none';
+  cellEl.offsetHeight;
+  cellEl.style.animation = 'shake 0.4s ease';
+  setTimeout(() => { cellEl.style.animation = ''; }, 400);
+}
+
+// ==================== 道具激活 ====================
+async function activatePowerup(row, col) {
+  if (isProcessing) return;
+  const pType = board[row][col];
+  if (!isPowerup(pType)) return;
+
+  isProcessing = true;
+  selectedCell = null;
+  clearHints();
+
+  // 播放激活闪光
+  const cellEl = boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+  if (cellEl) {
+    cellEl.classList.add('powerup-activating');
+  }
+
+  const cleared = [];
+
+  switch (pType) {
+    case POWERUP_FIREWORK:
+      // 烟花：清除整行 + 整列
+      showBeamEffect(row, col);
+      for (let c = 0; c < COLS; c++) {
+        if (board[row][c] !== null) { cleared.push({row, col: c}); board[row][c] = null; }
+      }
+      for (let r = 0; r < ROWS; r++) {
+        if (board[r][col] !== null) { cleared.push({row: r, col}); board[r][col] = null; }
+      }
+      break;
+
+    case POWERUP_BOMB:
+      // 炸弹：清除 5×5 区域
+      for (let dr = -2; dr <= 2; dr++) {
+        for (let dc = -2; dc <= 2; dc++) {
+          const nr = row + dr, nc = col + dc;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] !== null) {
+            cleared.push({row: nr, col: nc});
+            board[nr][nc] = null;
+          }
+        }
+      }
+      // 炸弹视觉
+      spawnBombShockwave(row, col);
+      break;
+
+    case POWERUP_SMALLBOMB:
+      // 小炸弹：清除 3×3 区域
+      for (let dr = -1; dr <= 1; dr++) {
+        for (let dc = -1; dc <= 1; dc++) {
+          const nr = row + dr, nc = col + dc;
+          if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] !== null) {
+            cleared.push({row: nr, col: nc});
+            board[nr][nc] = null;
+          }
+        }
+      }
+      // 小炸弹视觉
+      spawnSmallBombShockwave(row, col);
+      break;
+
+    case POWERUP_RAINBOW:
+      // 彩虹：全屏清除
+      showScreenFlash();
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (board[r][c] !== null) { cleared.push({row: r, col: c}); board[r][c] = null; }
+        }
+      }
+      break;
+  }
+
+  // 计分（道具激活算 1 combo）
+  comboCount++;
+  score += cleared.length * 10 * comboCount;
+  updateUI();
+  spawnParticles(cleared.slice(0, 20)); // 限制粒子数量
+  if (comboCount >= 3) spawnComboPop(comboCount);
+
+  renderBoard([], cleared);
+  await sleep(400);
+
+  // 重力 + 填充
+  const changes = applyGravity();
+  renderBoard(changes, []);
+  await sleep(400);
+
+  // 继续处理后续连锁
+  await processCascade();
+
+  // 没有步数消耗（道具激活不消耗步数）
+  checkEndCondition();
+  isProcessing = false;
+}
+
+// ---- 道具视觉特效 ----
+function showBeamEffect(row, col) {
+  const boardRect = boardEl.getBoundingClientRect();
+  const cellSize = boardRect.width / COLS;
+  const cX = boardRect.left + col * cellSize + cellSize / 2;
+  const cY = boardRect.top + row * cellSize + cellSize / 2;
+
+  // 水平光束
+  const hBeam = document.createElement('div');
+  hBeam.className = 'clear-beam horizontal';
+  hBeam.style.left = boardRect.left + 'px';
+  hBeam.style.top = cY + 'px';
+  hBeam.style.width = boardRect.width + 'px';
+  document.body.appendChild(hBeam);
+  hBeam.addEventListener('animationend', () => hBeam.remove());
+
+  // 垂直光束
+  const vBeam = document.createElement('div');
+  vBeam.className = 'clear-beam vertical';
+  vBeam.style.left = cX + 'px';
+  vBeam.style.top = boardRect.top + 'px';
+  vBeam.style.height = boardRect.height + 'px';
+  document.body.appendChild(vBeam);
+  vBeam.addEventListener('animationend', () => vBeam.remove());
+}
+
+function spawnBombShockwave(row, col) {
+  const cellEl = boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+  if (!cellEl) return;
+  const rect = cellEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const ring = document.createElement('div');
+  ring.style.cssText = `
+    position: fixed; pointer-events: none; z-index: 150;
+    left: ${cx - 40}px; top: ${cy - 40}px; width: 80px; height: 80px;
+    border: 3px solid rgba(255,100,50,0.9);
+    border-radius: 50%;
+    animation: bombExpand 0.6s ease-out forwards;
+  `;
+  document.body.appendChild(ring);
+  ring.addEventListener('animationend', () => ring.remove());
+}
+
+function spawnSmallBombShockwave(row, col) {
+  const cellEl = boardEl.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+  if (!cellEl) return;
+  const rect = cellEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const ring = document.createElement('div');
+  ring.style.cssText = `
+    position: fixed; pointer-events: none; z-index: 150;
+    left: ${cx - 25}px; top: ${cy - 25}px; width: 50px; height: 50px;
+    border: 2px solid rgba(255,140,60,0.85);
+    border-radius: 50%;
+    animation: smallBombExpand 0.45s ease-out forwards;
+  `;
+  document.body.appendChild(ring);
+  ring.addEventListener('animationend', () => ring.remove());
+}
+
+function showScreenFlash() {
+  const flash = document.createElement('div');
+  flash.className = 'screen-flash';
+  document.body.appendChild(flash);
+  flash.addEventListener('animationend', () => flash.remove());
+}
+
+// ==================== 提示 ====================
+function clearHints() {
+  hintCells = [];
+}
+
+function showHint() {
+  if (isProcessing) return;
+  clearHints();
+  const moves = findValidMoves();
+  if (moves.length === 0) {
+    shuffleBoard();
+    renderBoard();
+    return;
+  }
+  const move = moves[Math.floor(Math.random() * moves.length)];
+  hintCells = [{row: move.r1, col: move.c1}, {row: move.r2, col: move.c2}];
+  renderBoard();
+  setTimeout(() => {
+    clearHints();
+    renderBoard();
+  }, 1800);
+}
+
+// ==================== 弹窗 ====================
+function showVictoryModal(stars) {
+  const lv = LEVELS[currentLevel];
+  const isLast = currentLevel >= LEVELS.length - 1;
+  const isChapterEnd = (lv.level % 5 === 0);
+  const chIdx = lv.level <= 5 ? 0 : lv.level <= 10 ? 1 : lv.level <= 15 ? 2 : 3;
+  const ch = CHAPTERS[chIdx];
+  const totalEarned = levelStars.reduce((a, b) => a + b, 0);
+
+  let titleHtml = '🎉 关卡通过!';
+  if (isLast) titleHtml = '🏆 全部通关!';
+  else if (isChapterEnd) titleHtml = `🎊 ${ch.name}完成!`;
+
+  let detailExtra = '';
+  if (isLast) {
+    detailExtra = '<br><br>🏆 恭喜你成为<strong>消消乐之神</strong>!<br>全部20关征服完毕!';
+  } else if (isChapterEnd) {
+    detailExtra = `<br><br>📖 ${ch.name}通关!<br>继续向下一篇章迈进!`;
+  }
+
+  const html = `
+    <div class="modal">
+      <h2>${titleHtml}</h2>
+      <div class="stars-display">
+        ${[1,2,3].map(i =>
+          `<span class="star ${i <= stars ? 'earned' : 'empty'}">★</span>`
+        ).join('')}
+      </div>
+      <div class="score-final">${score.toLocaleString()}</div>
+      <div class="detail">
+        第 ${lv.level}/20 关 · ${lv.name}<br>
+        累计 ⭐ ${totalEarned}/60 颗星
+        ${detailExtra}
+      </div>
+      <div class="btn-row" style="flex-wrap:wrap;">
+        ${isLast ? '' : `<button class="btn" id="btnNext">▶ 下一关</button>`}
+        <button class="btn btn-secondary" id="btnReplay">🔄 重玩本关</button>
+        <button class="btn btn-secondary" id="btnToLevels">📋 关卡选择</button>
+      </div>
+    </div>
+  `;
+  overlay.innerHTML = html;
+  overlay.style.display = 'flex';
+
+  overlay.querySelector('#btnNext')?.addEventListener('click', () => {
+    overlay.style.display = 'none';
+    if (currentLevel < LEVELS.length - 1) {
+      currentLevel++;
+      startLevel();
+    }
+  });
+  overlay.querySelector('#btnReplay')?.addEventListener('click', () => {
+    overlay.style.display = 'none';
+    startLevel();
+  });
+  overlay.querySelector('#btnToLevels')?.addEventListener('click', () => {
+    overlay.style.display = 'none';
+    goToLevelSelect();
+  });
+}
+
+function showDefeatModal() {
+  const lv = LEVELS[currentLevel];
+  const html = `
+    <div class="modal">
+      <h2>😢 步数用完了</h2>
+      <div class="score-final">${score.toLocaleString()}</div>
+      <div class="detail">
+        第 ${lv.level}/20 关 · ${lv.name}<br>
+        目标分数: ${lv.target.toLocaleString()}<br>
+        还差 ${(lv.target - score).toLocaleString()} 分
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="btnRetry">🔄 再试一次</button>
+        <button class="btn btn-secondary" id="btnToLevels">📋 关卡选择</button>
+      </div>
+    </div>
+  `;
+  overlay.innerHTML = html;
+  overlay.style.display = 'flex';
+
+  overlay.querySelector('#btnRetry').addEventListener('click', () => {
+    overlay.style.display = 'none';
+    startLevel();
+  });
+  overlay.querySelector('#btnToLevels').addEventListener('click', () => {
+    overlay.style.display = 'none';
+    goToLevelSelect();
+  });
+}
+
+// ==================== 界面切换 ====================
+function showScreen(screen) {
+  chapterScreen.style.display = 'none';
+  levelScreen.style.display = 'none';
+  gameScreen.style.display = 'none';
+  if (screen === 'chapter') chapterScreen.style.display = '';
+  else if (screen === 'level') levelScreen.style.display = '';
+  else if (screen === 'game') gameScreen.style.display = '';
+}
+
+// 篇章数据
+const CHAPTERS = [
+  { name: '第一篇章', subtitle: '初入江湖', cls: 'ch1', levels: [0,1,2,3,4] },
+  { name: '第二篇章', subtitle: '渐露锋芒', cls: 'ch2', levels: [5,6,7,8,9] },
+  { name: '第三篇章', subtitle: '登峰造极', cls: 'ch3', levels: [10,11,12,13,14] },
+  { name: '第四篇章', subtitle: '超凡入圣', cls: 'ch4', levels: [15,16,17,18,19] },
+];
+
+function isChapterUnlocked(chIdx) {
+  if (chIdx === 0) return true;
+  // 前一章节至少拿到 (前一章节关数) 颗星才解锁
+  const prev = CHAPTERS[chIdx - 1];
+  const prevStars = prev.levels.reduce((sum, li) => sum + levelStars[li], 0);
+  return prevStars >= prev.levels.length; // 前一章每关至少1星
+}
+
+function isLevelUnlocked(levelIdx) {
+  if (levelIdx === 0) return true;
+  // 前一关至少1星
+  return levelStars[levelIdx - 1] >= 1;
+}
+
+function renderChapterScreen() {
+  chapterList.innerHTML = '';
+  CHAPTERS.forEach((ch, idx) => {
+    const unlocked = isChapterUnlocked(idx);
+    const chStars = ch.levels.reduce((sum, li) => sum + levelStars[li], 0);
+    const maxStars = ch.levels.length * 3;
+    const completedCount = ch.levels.filter(li => levelStars[li] >= 1).length;
+    const card = document.createElement('div');
+    card.className = `chapter-card ${ch.cls}${unlocked ? '' : ' locked'}`;
+    card.innerHTML = `
+      <div class="ch-header">
+        <span class="ch-index">${ch.name}</span>
+        ${unlocked ? '' : '<span class="ch-lock">🔒</span>'}
+      </div>
+      <div class="ch-name">${ch.subtitle}</div>
+      <div class="ch-meta">
+        <span class="ch-stars">⭐ ${chStars}/${maxStars}</span>
+        <span>✅ ${completedCount}/${ch.levels.length} 关</span>
+      </div>
+      <div class="ch-progress-bar">
+        <div class="ch-progress-fill" style="width:${(completedCount / ch.levels.length * 100)}%"></div>
+      </div>
+    `;
+    if (unlocked) {
+      card.addEventListener('click', () => showLevelScreen(idx));
+    }
+    chapterList.appendChild(card);
+  });
+}
+
+function showLevelScreen(chIdx) {
+  const ch = CHAPTERS[chIdx];
+  levelScreenTitle.textContent = `${ch.name} · ${ch.subtitle}`;
+  levelGrid.innerHTML = '';
+  ch.levels.forEach(li => {
+    const lv = LEVELS[li];
+    const unlocked = isLevelUnlocked(li);
+    const stars = levelStars[li];
+    const card = document.createElement('div');
+    card.className = `level-card${unlocked ? '' : ' locked'}${stars >= 1 ? ' completed' : ''}`;
+    card.innerHTML = `
+      <div class="lv-num">${lv.level}</div>
+      <div class="lv-name">${lv.name}</div>
+      <div class="lv-stars">
+        ${[1,2,3].map(s => `<span class="${s <= stars ? 's-on' : 's-off'}">★</span>`).join('')}
+      </div>
+      <div class="lv-target">🎯 ${lv.target.toLocaleString()}</div>
+      ${unlocked ? '' : '<div class="lv-lock-icon">🔒</div>'}
+    `;
+    if (unlocked) {
+      card.addEventListener('click', () => {
+        currentLevel = li;
+        startLevel();
+      });
+    }
+    levelGrid.appendChild(card);
+  });
+  showScreen('level');
+}
+
+// ==================== 游戏流程 ====================
+function startLevel() {
+  const lv = LEVELS[currentLevel];
+  createBoard();
+  score = 0;
+  movesLeft = lv.moves;
+  comboCount = 1;
+  selectedCell = null;
+  isProcessing = false;
+  hintCells = [];
+  showScreen('game');
+  updateUI();
+  renderBoard();
+
+  if (findValidMoves().length === 0) {
+    shuffleBoard();
+    renderBoard();
+  }
+}
+
+function initGame() {
+  const saved = localStorage.getItem('xiaoxiaole_progress');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.levelStars && Array.isArray(data.levelStars)) {
+        levelStars = data.levelStars;
+      } else if (data.totalStars !== undefined) {
+        // 迁移旧数据
+        const oldTotal = data.totalStars || 0;
+        const oldLevel = data.level || 0;
+        for (let i = 0; i <= oldLevel && i < 20; i++) {
+          levelStars[i] = Math.min(3, Math.max(1, Math.floor(oldTotal / (oldLevel + 1))));
+        }
+      }
+    } catch(e) { /* ignore */ }
+  }
+  showScreen('chapter');
+  renderChapterScreen();
+}
+
+function saveProgress() {
+  localStorage.setItem('xiaoxiaole_progress', JSON.stringify({
+    levelStars: levelStars,
+  }));
+}
+
+function goToLevelSelect() {
+  const lv = LEVELS[currentLevel];
+  const chIdx = lv.level <= 5 ? 0 : lv.level <= 10 ? 1 : lv.level <= 15 ? 2 : 3;
+  renderChapterScreen();
+  showLevelScreen(chIdx);
+}
+
+function goToChapterSelect() {
+  renderChapterScreen();
+  showScreen('chapter');
+}
+
+// ---- 按钮事件 ----
+document.getElementById('btnHint').addEventListener('click', showHint);
+document.getElementById('btnRestart').addEventListener('click', () => startLevel());
+document.getElementById('btnBackToLevels').addEventListener('click', () => goToLevelSelect());
+document.getElementById('btnBackToChapter').addEventListener('click', () => goToChapterSelect());
+
+// ---- 键盘操作 ----
+document.addEventListener('keydown', (e) => {
+  if (isProcessing) return;
+  if (!selectedCell) return;
+  let nr = selectedCell.row, nc = selectedCell.col;
+  switch(e.key) {
+    case 'ArrowUp':    nr--; break;
+    case 'ArrowDown':  nr++; break;
+    case 'ArrowLeft':  nc--; break;
+    case 'ArrowRight': nc++; break;
+    case 'Escape':
+      selectedCell = null;
+      renderBoard();
+      return;
+    default: return;
+  }
+  if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+    onCellClick(nr, nc);
+  }
+  e.preventDefault();
+});
+
+// ---- 触摸/滑动支持 ----
+let touchStart = null;
+boardEl.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 1) {
+    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+});
+boardEl.addEventListener('touchend', (e) => {
+  if (!touchStart || !selectedCell) return;
+  const dx = (e.changedTouches[0]?.clientX || 0) - touchStart.x;
+  const dy = (e.changedTouches[0]?.clientY || 0) - touchStart.y;
+  const absDx = Math.abs(dx), absDy = Math.abs(dy);
+  if (Math.max(absDx, absDy) < 20) return;
+
+  let nr = selectedCell.row, nc = selectedCell.col;
+  if (absDx > absDy) {
+    nc += dx > 0 ? 1 : -1;
+  } else {
+    nr += dy > 0 ? 1 : -1;
+  }
+  touchStart = null;
+  if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+    onCellClick(nr, nc);
+  }
+});
+
+// ---- 动画样式补充 ----
+const shakeStyle = document.createElement('style');
+shakeStyle.textContent = `
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  @keyframes bombExpand {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(3.5); opacity: 0; }
+  }
+  @keyframes smallBombExpand {
+    0% { transform: scale(0.5); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+`;
+document.head.appendChild(shakeStyle);
+
+// ==================== 启动 ====================
+initGame();
+console.log('✨ 消消乐已就绪！');
+console.log('  点击选中宝石 → 点击相邻宝石交换');
+console.log('  键盘方向键可移动选中 → ESC取消选中');
+console.log('  也可用鼠标/触屏滑动交换');
+console.log('🎆 特殊道具（双击触发）：');
+console.log('  4连 → 烟花（清除整行+整列）');
+console.log('  T/L形 → 炸弹（爆破5×5区域）');
+console.log('  2×2方块 → 小炸弹（爆破3×3区域）');
+console.log('  5连 → 彩虹（全屏清除）');
+</script>
+
+</body>
+</html>
