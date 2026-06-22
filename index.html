@@ -444,88 +444,11 @@
     .info-item .value { font-size: 1.2rem; }
   }
 
-  /* ======== 选择界面 ======== */
-  .select-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 32px;
-    width: 100%;
-    max-width: 480px;
-    padding: 14px;
-    animation: fadeSlideIn 0.3s ease;
-  }
+  /* ======== 关卡地图（卡通猫咪风格） ======== */
   @keyframes fadeSlideIn {
     0% { opacity: 0; transform: translateY(12px); }
     100% { opacity: 1; transform: translateY(0); }
   }
-  .screen-title {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: 1px;
-    text-align: center;
-  }
-  .screen-subtitle {
-    color: rgba(255,255,255,0.4);
-    font-size: 0.8rem;
-    margin-top: -22px;
-  }
-  .chapter-list {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    width: 100%;
-  }
-  .chapter-card {
-    background: var(--panel);
-    border-radius: 16px;
-    padding: 22px 24px;
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.06);
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  }
-  .chapter-card:hover:not(.locked) { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
-  .chapter-card:active:not(.locked) { transform: scale(0.98); }
-  .chapter-card.locked { opacity: 0.5; cursor: not-allowed; filter: grayscale(30%); }
-  .chapter-card .ch-header { display: flex; justify-content: space-between; align-items: center; }
-  .chapter-card .ch-index {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--accent);
-    font-weight: 700;
-  }
-  .chapter-card .ch-lock { font-size: 1.2rem; opacity: 0.7; }
-  .chapter-card .ch-name {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #fff;
-    margin: 8px 0 8px;
-  }
-  .chapter-card .ch-meta { display: flex; gap: 16px; color: rgba(255,255,255,0.45); font-size: 0.78rem; }
-  .chapter-card .ch-meta span { display:flex; align-items:center; gap:4px; }
-  .chapter-card .ch-stars { color: var(--gold); }
-  .chapter-card .ch-progress-bar {
-    margin-top: 12px;
-    height: 5px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .chapter-card .ch-progress-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.5s ease;
-  }
-  .chapter-card.ch1 { border-left: 4px solid #ff6b6b; }
-  .chapter-card.ch2 { border-left: 4px solid #feca57; }
-  .chapter-card.ch3 { border-left: 4px solid #54a0ff; }
-  .chapter-card.ch4 { border-left: 4px solid #a29bfe; }
 
   /* ======== 关卡地图（开心消消乐风格） ======== */
   .map-screen {
@@ -543,28 +466,33 @@
   .map-header {
     display: flex;
     align-items: center;
-    padding: 6px 4px 8px 0;
+    justify-content: center;
+    padding: 6px 4px 8px 4px;
     z-index: 20;
     position: relative;
     flex-shrink: 0;
-    gap: 4px;
+    gap: 10px;
   }
-  .map-header .back-btn {
-    align-self: auto;
-    background: rgba(0,0,0,0.25);
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.8);
-  }
-  .map-header .back-btn:hover { background: rgba(0,0,0,0.4); color: #fff; }
   .map-header .map-title {
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 1.15rem;
+    font-weight: 800;
     color: #fff;
     text-align: center;
-    flex: 1;
     text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(4px);
+    padding: 6px 20px;
+    border-radius: 30px;
+    border: 1px solid rgba(255,255,255,0.12);
+  }
+  .map-header .map-cat {
+    font-size: 1.5rem;
+    animation: catBounce 2s ease-in-out infinite;
+  }
+  @keyframes catBounce {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-6px) rotate(3deg); }
   }
 
   .map-body {
@@ -572,32 +500,32 @@
     position: relative;
     overflow-y: auto;
     overflow-x: hidden;
-    border-radius: 16px;
-    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    border: 2px solid rgba(255,255,255,0.12);
     min-height: 360px;
-    /* 风景背景：天空 → 远山 → 草地 */
+    /* 卡通风景背景：粉嫩天空 → 彩虹色 → 草地的渐变 */
     background:
-      /* 草地纹理层 */
+      /* 草地 */
       linear-gradient(180deg,
-        rgba(90,188,60,0) 58%,
-        rgba(80,175,50,0.4) 62%,
-        rgba(70,160,40,0.6) 70%,
-        rgba(55,140,30,0.8) 80%,
-        rgba(40,110,20,0.9) 90%,
-        rgba(30,80,15,1) 100%
+        rgba(120,210,80,0) 54%,
+        rgba(100,200,60,0.3) 58%,
+        rgba(80,185,45,0.55) 66%,
+        rgba(60,165,30,0.75) 76%,
+        rgba(45,140,20,0.9) 86%,
+        rgba(35,110,15,1) 100%
       ),
-      /* 天空渐变 */
+      /* 天空日落渐变 */
       linear-gradient(180deg,
-        #3a7bd5 0%,
-        #5b9ae0 18%,
-        #87CEEB 35%,
-        #b0e0e6 48%,
-        #a8dba8 56%,
-        #7ec850 65%
+        #b3d9ff 0%,
+        #d4aaff 20%,
+        #f8c8dc 35%,
+        #ffe0b2 45%,
+        #fff8e1 50%,
+        #c8e6c9 55%
       );
   }
 
-  /* ---- 风景装饰 ---- */
+  /* ---- 卡通风景装饰 ---- */
   .scenery {
     position: absolute;
     inset: 0;
@@ -606,62 +534,104 @@
     z-index: 0;
     isolation: isolate;
   }
-  /* 云朵 */
+  /* 可爱云朵 */
   .cloud {
     position: absolute;
-    background: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.7);
     border-radius: 50px;
-    filter: blur(1px);
+    box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+  }
+  .cloud::before, .cloud::after {
+    content: '';
+    position: absolute;
+    background: inherit;
+    border-radius: 50%;
   }
   .cloud.c1 {
-    width: 120px; height: 28px;
-    top: 6%; left: 8%;
-    animation: cloudDrift 18s linear infinite;
+    width: 100px; height: 28px;
+    top: 5%; left: 5%;
+    animation: cloudDrift 20s ease-in-out infinite;
   }
+  .cloud.c1::before { width: 50px; height: 30px; top: -14px; left: 18px; border-radius: 50%; }
+  .cloud.c1::after { width: 35px; height: 22px; top: -10px; left: 55px; border-radius: 50%; }
   .cloud.c2 {
-    width: 90px; height: 22px;
-    top: 12%; right: 12%;
-    animation: cloudDrift 22s linear infinite reverse;
+    width: 80px; height: 22px;
+    top: 10%; right: 8%;
+    animation: cloudDrift 25s ease-in-out infinite reverse;
   }
+  .cloud.c2::before { width: 40px; height: 24px; top: -12px; left: 15px; border-radius: 50%; }
+  .cloud.c2::after { width: 30px; height: 18px; top: -8px; left: 45px; border-radius: 50%; }
   .cloud.c3 {
-    width: 70px; height: 18px;
-    top: 18%; left: 50%;
-    animation: cloudDrift 15s linear infinite;
+    width: 60px; height: 18px;
+    top: 16%; left: 45%;
+    animation: cloudDrift 18s ease-in-out infinite;
   }
+  .cloud.c3::before { width: 30px; height: 20px; top: -10px; left: 12px; border-radius: 50%; }
+  .cloud.c3::after { width: 22px; height: 14px; top: -6px; left: 33px; border-radius: 50%; }
   @keyframes cloudDrift {
-    0% { transform: translateX(0); }
-    50% { transform: translateX(30px); }
-    100% { transform: translateX(0); }
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(25px); }
   }
-  /* 远山 */
-  .mountain {
+  /* 彩虹 */
+  .rainbow {
     position: absolute;
-    bottom: 32%;
-  }
-  .mountain.m1 {
-    left: 0;
-    width: 48%;
-    height: 140px;
-    background: linear-gradient(135deg, #6b8f6e 0%, #4a7045 60%, #3a6035 100%);
-    clip-path: polygon(0% 100%, 12% 55%, 25% 35%, 38% 50%, 50% 20%, 65% 40%, 78% 15%, 90% 45%, 100% 100%);
-    opacity: 0.5;
-  }
-  .mountain.m2 {
-    right: -5%;
-    width: 55%;
-    height: 200px;
-    background: linear-gradient(135deg, #5a8060 0%, #3d6a40 50%, #2d5a30 100%);
-    clip-path: polygon(0% 100%, 20% 60%, 35% 30%, 50% 45%, 65% 20%, 80% 50%, 100% 100%);
-    opacity: 0.45;
-  }
-  .mountain.m3 {
-    left: 30%;
-    width: 30%;
-    height: 80px;
-    background: linear-gradient(135deg, #4a7a4e 0%, #2d5a30 100%);
-    clip-path: polygon(0% 100%, 50% 15%, 100% 100%);
+    top: 1%;
+    right: 10%;
+    width: 80px;
+    height: 40px;
+    border-radius: 80px 80px 0 0;
+    background: conic-gradient(from 0deg, #ff6b6b, #ff9f43, #feca57, #2ecc71, #54a0ff, #a29bfe, #ff6b6b);
     opacity: 0.35;
-    bottom: 36%;
+    mask: linear-gradient(to bottom, black 60%, transparent 100%);
+    -webkit-mask: linear-gradient(to bottom, black 60%, transparent 100%);
+  }
+  /* 小星星装饰 */
+  .sparkle {
+    position: absolute;
+    font-size: 0.9rem;
+    opacity: 0.5;
+    animation: sparkleTwinkle 1.5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes sparkleTwinkle {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 0.8; transform: scale(1.2); }
+  }
+  /* 可爱的花 */
+  .flower {
+    position: absolute;
+    font-size: 1.2rem;
+    pointer-events: none;
+    animation: flowerSway 3s ease-in-out infinite;
+  }
+  @keyframes flowerSway {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+  /* 蝴蝶 */
+  .butterfly {
+    position: absolute;
+    font-size: 1.1rem;
+    pointer-events: none;
+    animation: butterflyFly 4s ease-in-out infinite;
+  }
+  @keyframes butterflyFly {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(10px, -8px) rotate(5deg); }
+    50% { transform: translate(5px, -15px) rotate(-3deg); }
+    75% { transform: translate(-5px, -6px) rotate(3deg); }
+  }
+  /* 猫咪尾巴（装饰） */
+  .cat-tail {
+    position: absolute;
+    font-size: 1.8rem;
+    pointer-events: none;
+    animation: tailWag 1.8s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+  @keyframes tailWag {
+    0%, 100% { transform: rotate(-8deg) scaleX(-1); }
+    50% { transform: rotate(8deg) scaleX(-1); }
   }
 
   /* ---- SVG 路径 ---- */
@@ -675,6 +645,20 @@
     z-index: 1;
   }
 
+  /* ---- 猫爪印装饰 ---- */
+  .paw-print {
+    position: absolute;
+    font-size: 1rem;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.35;
+    animation: pawFloat 3s ease-in-out infinite;
+  }
+  @keyframes pawFloat {
+    0%, 100% { transform: translateY(0) scale(1); opacity: 0.35; }
+    50% { transform: translateY(-4px) scale(1.1); opacity: 0.5; }
+  }
+
   /* ---- 关卡节点 ---- */
   .level-node {
     position: absolute;
@@ -683,59 +667,82 @@
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    transition: transform 0.2s ease;
+    transition: transform 0.25s ease;
     user-select: none;
     -webkit-user-select: none;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.2));
   }
-  .level-node:hover:not(.locked) { transform: translateY(-3px); }
+  .level-node:hover:not(.locked) { transform: translateY(-5px) scale(1.05); }
   .level-node:active:not(.locked) { transform: scale(0.92); }
-  .level-node.locked { cursor: not-allowed; opacity: 0.65; }
+  .level-node.locked { cursor: not-allowed; opacity: 0.6; }
   .level-node.locked:hover { transform: none; }
 
   .node-circle {
-    width: 50px;
-    height: 50px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 900;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     color: #fff;
     position: relative;
     background: linear-gradient(135deg, #ff6b6b, #c0392b);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.3);
-    border: 3px solid rgba(255,255,255,0.35);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.35);
+    border: 3px solid rgba(255,255,255,0.4);
     transition: all 0.25s ease;
     text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    /* 猫咪耳朵伪元素在JS中动态添加 */
   }
-  /* 不同篇章不同节点颜色 */
-  .level-node.chapter-0 .node-circle { background: linear-gradient(135deg, #ff6b6b, #c0392b); }
-  .level-node.chapter-1 .node-circle { background: linear-gradient(135deg, #ff9f43, #e67e22); }
-  .level-node.chapter-2 .node-circle { background: linear-gradient(135deg, #54a0ff, #2e86de); }
-  .level-node.chapter-3 .node-circle { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+  /* 已完成节点的猫耳装饰（由JS动态添加 .cat-ear 类） */
+  .node-circle.cat-ear::before,
+  .node-circle.cat-ear::after {
+    content: '▲';
+    position: absolute;
+    top: -12px;
+    font-size: 0.55rem;
+    color: var(--gold);
+    text-shadow: 0 0 6px rgba(245,197,24,0.5);
+    transform: scaleX(0.6);
+  }
+  .node-circle.cat-ear::before { left: 6px; }
+  .node-circle.cat-ear::after { right: 6px; }
+
+  /* 不同篇章不同节点颜色 - 更柔和卡通 */
+  .level-node.chapter-0 .node-circle { background: linear-gradient(135deg, #ff8787, #e74c3c); }
+  .level-node.chapter-1 .node-circle { background: linear-gradient(135deg, #ffb347, #f39c12); }
+  .level-node.chapter-2 .node-circle { background: linear-gradient(135deg, #74b9ff, #3498db); }
+  .level-node.chapter-3 .node-circle { background: linear-gradient(135deg, #b8a9ff, #8e44ad); }
 
   .node-circle.completed {
     border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(245,197,24,0.3), 0 4px 14px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.3);
+    box-shadow: 0 0 0 3px rgba(245,197,24,0.35), 0 4px 14px rgba(0,0,0,0.25), inset 0 2px 0 rgba(255,255,255,0.35);
+    animation: completedPulse 2s ease-in-out infinite;
+  }
+  @keyframes completedPulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(245,197,24,0.35), 0 4px 14px rgba(0,0,0,0.25); }
+    50% { box-shadow: 0 0 0 5px rgba(245,197,24,0.5), 0 0 20px rgba(245,197,24,0.2), 0 4px 14px rgba(0,0,0,0.25); }
   }
   .node-circle.locked {
     background: rgba(0,0,0,0.35) !important;
     border-color: rgba(255,255,255,0.08);
+    box-shadow: none;
   }
-  .node-circle.locked .node-num { opacity: 0.25; }
+  .node-circle.locked .node-num { opacity: 0.2; }
 
-  .node-circle .node-num { font-size: 1.2rem; }
+  .node-circle .node-num { font-size: 1.25rem; position: relative; z-index: 1; }
   .node-circle .node-lock-icon {
     position: absolute;
     top: -5px;
     right: -5px;
     font-size: 0.95rem;
     filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+    z-index: 2;
   }
   .node-circle .node-stars {
     position: absolute;
-    bottom: -15px;
+    bottom: -16px;
     left: 50%;
     transform: translateX(-50%);
     font-size: 0.7rem;
@@ -744,49 +751,52 @@
     display: flex;
     gap: 1px;
   }
-  .node-stars .s-on { color: var(--gold); text-shadow: 0 0 6px rgba(245,197,24,0.6); }
-  .node-stars .s-off { color: rgba(255,255,255,0.15); }
+  .node-stars .s-on { color: var(--gold); text-shadow: 0 0 8px rgba(245,197,24,0.7); }
+  .node-stars .s-off { color: rgba(255,255,255,0.12); }
 
   .node-label {
-    margin-top: 18px;
+    margin-top: 20px;
     font-size: 0.6rem;
-    color: rgba(255,255,255,0.6);
-    font-weight: 600;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    color: rgba(255,255,255,0.5);
+    font-weight: 700;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.7);
     white-space: nowrap;
     letter-spacing: 0.5px;
     background: rgba(0,0,0,0.2);
-    backdrop-filter: blur(2px);
-    padding: 2px 8px;
-    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    padding: 3px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
   }
-  .level-node.locked .node-label { opacity: 0.4; }
+  .level-node.locked .node-label { opacity: 0.35; }
   .level-node:not(.locked) .node-label {
-    color: rgba(255,255,255,0.85);
+    color: rgba(255,255,255,0.9);
   }
 
-  /* ---- 篇章分隔条 ---- */
+  /* ---- 篇章分隔条（卡通版） ---- */
   .chapter-divider {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
     z-index: 4;
     pointer-events: none;
-    padding: 6px 18px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 700;
+    padding: 7px 22px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: 800;
     color: #fff;
     letter-spacing: 2px;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.4);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     white-space: nowrap;
+    border: 1.5px solid rgba(255,255,255,0.2);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
   }
-  .chapter-divider.d0 { background: rgba(255,107,107,0.55); border: 1px solid rgba(255,107,107,0.25); }
-  .chapter-divider.d1 { background: rgba(254,202,87,0.55);  border: 1px solid rgba(254,202,87,0.25); }
-  .chapter-divider.d2 { background: rgba(84,160,255,0.55);  border: 1px solid rgba(84,160,255,0.25); }
-  .chapter-divider.d3 { background: rgba(162,155,254,0.55); border: 1px solid rgba(162,155,254,0.25); }
+  .chapter-divider.d0 { background: linear-gradient(135deg, rgba(255,107,107,0.6), rgba(255,150,100,0.6)); }
+  .chapter-divider.d1 { background: linear-gradient(135deg, rgba(254,202,87,0.6), rgba(255,170,50,0.6)); }
+  .chapter-divider.d2 { background: linear-gradient(135deg, rgba(84,160,255,0.6), rgba(100,200,255,0.6)); }
+  .chapter-divider.d3 { background: linear-gradient(135deg, rgba(162,155,254,0.6), rgba(200,160,255,0.6)); }
 
   /* ---- 地图完成标记 ---- */
   .map-complete-badge {
@@ -795,9 +805,14 @@
     z-index: 4;
     pointer-events: none;
     transform: translateX(-50%);
-    font-size: 2.4rem;
+    font-size: 2.8rem;
     text-align: center;
-    filter: drop-shadow(0 4px 12px rgba(245,197,24,0.5));
+    filter: drop-shadow(0 4px 16px rgba(245,197,24,0.6));
+    animation: badgeBounce 2s ease-in-out infinite;
+  }
+  @keyframes badgeBounce {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.15) rotate(-3deg); }
   }
 
   .back-btn {
@@ -858,7 +873,27 @@
     .info-item { padding: 8px 12px; min-width: 56px; }
     .info-item .value { font-size: 1.1rem; }
     /* 地图响应式 */
-    .map-screen { max-width: 100%; min-height: 400px; height: calc(100vh - 40px); max-height: none; }
+    .map-screen { max-width: 100%; min-height: 380px; height: calc(100vh - 40px); max-height: none; }
+    .map-body { min-height: 280px; border-radius: 14px; }
+    .node-circle { width: 44px; height: 44px; font-size: 1.05rem; }
+    .node-circle .node-num { font-size: 1.05rem; }
+    .node-circle .node-stars { font-size: 0.6rem; bottom: -14px; }
+    .node-circle.cat-ear::before,
+    .node-circle.cat-ear::after { font-size: 0.45rem; top: -10px; }
+    .node-circle.cat-ear::before { left: 4px; }
+    .node-circle.cat-ear::after { right: 4px; }
+    .node-label { font-size: 0.55rem; margin-top: 17px; padding: 2px 8px; }
+    .chapter-divider { font-size: 0.7rem; padding: 5px 14px; }
+    .map-header .map-title { font-size: 0.95rem; padding: 5px 14px; }
+    .map-header .map-cat { font-size: 1.3rem; }
+    .cloud.c1 { width: 70px; height: 20px; }
+    .cloud.c1::before { width: 35px; height: 20px; top: -10px; left: 12px; }
+    .cloud.c1::after { width: 24px; height: 15px; top: -7px; left: 38px; }
+    .cloud.c2 { width: 55px; height: 16px; }
+    .cloud.c2::before { width: 28px; height: 17px; top: -8px; left: 10px; }
+    .cloud.c2::after { width: 20px; height: 12px; top: -5px; left: 32px; }
+    .cloud.c3 { display: none; }
+    .rainbow { width: 55px; height: 28px; }
     .map-body { min-height: 300px; border-radius: 12px; }
     .node-circle { width: 42px; height: 42px; font-size: 1rem; }
     .node-circle .node-num { font-size: 1rem; }
@@ -872,27 +907,33 @@
 <body>
 
 <div class="game-wrapper" id="gameWrapper">
-  <!-- ======== 篇章选择界面 ======== -->
-  <div class="select-screen" id="chapterScreen">
-    <div class="screen-title">✨ 消消乐</div>
-    <div class="screen-subtitle">选择篇章</div>
-    <div class="chapter-list" id="chapterList"></div>
-  </div>
-
-  <!-- ======== 关卡地图界面 ======== -->
-  <div class="map-screen" id="levelScreen" style="display:none;">
+  <!-- ======== 关卡地图界面（猫咪乐园） ======== -->
+  <div class="map-screen" id="levelScreen">
     <div class="map-header">
-      <button class="back-btn" id="btnBackToChapter">← 篇章</button>
-      <div class="map-title" id="mapTitle">🗺️ 关卡地图</div>
+      <span class="map-cat">🐱</span>
+      <div class="map-title" id="mapTitle">🌟 猫咪闯关</div>
+      <span class="map-cat">🐱</span>
     </div>
     <div class="map-body" id="mapBody">
       <div class="scenery">
+        <div class="rainbow"></div>
         <div class="cloud c1"></div>
         <div class="cloud c2"></div>
         <div class="cloud c3"></div>
-        <div class="mountain m1"></div>
-        <div class="mountain m2"></div>
-        <div class="mountain m3"></div>
+        <!-- 装饰性星星 -->
+        <span class="sparkle" style="top:3%;left:15%;">✨</span>
+        <span class="sparkle" style="top:8%;right:20%;animation-delay:0.5s;">✨</span>
+        <span class="sparkle" style="top:14%;left:35%;animation-delay:1s;">✨</span>
+        <!-- 花朵装饰 -->
+        <span class="flower" style="bottom:10%;left:5%;animation-delay:0s;">🌸</span>
+        <span class="flower" style="bottom:14%;right:8%;animation-delay:0.5s;">🌺</span>
+        <span class="flower" style="bottom:8%;left:25%;animation-delay:1s;">🌻</span>
+        <span class="flower" style="bottom:12%;right:25%;animation-delay:1.5s;">🌷</span>
+        <!-- 蝴蝶 -->
+        <span class="butterfly" style="top:25%;left:20%;">🦋</span>
+        <span class="butterfly" style="top:32%;right:15%;animation-delay:2s;">🦋</span>
+        <!-- 猫咪尾巴 -->
+        <span class="cat-tail" style="bottom:18%;left:8%;">🐾</span>
       </div>
       <div id="mapContent" style="position:relative;width:100%;"></div>
     </div>
@@ -1018,9 +1059,7 @@ const levelBadge    = document.getElementById('levelBadge');
 const chapterTag    = document.getElementById('chapterTag');
 const overlay       = document.getElementById('overlay');
 const gameScreen    = document.getElementById('gameScreen');
-const chapterScreen = document.getElementById('chapterScreen');
 const levelScreen   = document.getElementById('levelScreen');
-const chapterList   = document.getElementById('chapterList');
 const mapBody       = document.getElementById('mapBody');
 const mapContent    = document.getElementById('mapContent');
 const mapTitle      = document.getElementById('mapTitle');
@@ -1852,11 +1891,9 @@ function showDefeatModal() {
 
 // ==================== 界面切换 ====================
 function showScreen(screen) {
-  chapterScreen.style.display = 'none';
   levelScreen.style.display = 'none';
   gameScreen.style.display = 'none';
-  if (screen === 'chapter') chapterScreen.style.display = '';
-  else if (screen === 'level') levelScreen.style.display = '';
+  if (screen === 'level') levelScreen.style.display = '';
   else if (screen === 'game') gameScreen.style.display = '';
 }
 
@@ -1868,48 +1905,42 @@ const CHAPTERS = [
   { name: '第四篇章', subtitle: '超凡入圣', cls: 'ch4', levels: [15,16,17,18,19] },
 ];
 
-function isChapterUnlocked(chIdx) {
-  if (chIdx === 0) return true;
-  // 前一章节至少拿到 (前一章节关数) 颗星才解锁
-  const prev = CHAPTERS[chIdx - 1];
-  const prevStars = prev.levels.reduce((sum, li) => sum + levelStars[li], 0);
-  return prevStars >= prev.levels.length; // 前一章每关至少1星
-}
-
 function isLevelUnlocked(levelIdx) {
   if (levelIdx === 0) return true;
   // 前一关至少1星
   return levelStars[levelIdx - 1] >= 1;
 }
 
-function renderChapterScreen() {
-  chapterList.innerHTML = '';
-  CHAPTERS.forEach((ch, idx) => {
-    const unlocked = isChapterUnlocked(idx);
-    const chStars = ch.levels.reduce((sum, li) => sum + levelStars[li], 0);
-    const maxStars = ch.levels.length * 3;
-    const completedCount = ch.levels.filter(li => levelStars[li] >= 1).length;
-    const card = document.createElement('div');
-    card.className = `chapter-card ${ch.cls}${unlocked ? '' : ' locked'}`;
-    card.innerHTML = `
-      <div class="ch-header">
-        <span class="ch-index">${ch.name}</span>
-        ${unlocked ? '' : '<span class="ch-lock">🔒</span>'}
-      </div>
-      <div class="ch-name">${ch.subtitle}</div>
-      <div class="ch-meta">
-        <span class="ch-stars">⭐ ${chStars}/${maxStars}</span>
-        <span>✅ ${completedCount}/${ch.levels.length} 关</span>
-      </div>
-      <div class="ch-progress-bar">
-        <div class="ch-progress-fill" style="width:${(completedCount / ch.levels.length * 100)}%"></div>
-      </div>
-    `;
-    if (unlocked) {
-      card.addEventListener('click', () => showMapView(idx));
-    }
-    chapterList.appendChild(card);
-  });
+function initGame() {
+  const saved = localStorage.getItem('xiaoxiaole_progress');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.levelStars && Array.isArray(data.levelStars)) {
+        levelStars = data.levelStars;
+      } else if (data.totalStars !== undefined) {
+        // 迁移旧数据
+        const oldTotal = data.totalStars || 0;
+        const oldLevel = data.level || 0;
+        for (let i = 0; i <= oldLevel && i < 20; i++) {
+          levelStars[i] = Math.min(3, Math.max(1, Math.floor(oldTotal / (oldLevel + 1))));
+        }
+      }
+    } catch(e) { /* ignore */ }
+  }
+  showMapView(0);
+}
+
+function saveProgress() {
+  localStorage.setItem('xiaoxiaole_progress', JSON.stringify({
+    levelStars: levelStars,
+  }));
+}
+
+function goToLevelSelect() {
+  const lv = LEVELS[currentLevel] || LEVELS[0];
+  const chIdx = lv.level <= 5 ? 0 : lv.level <= 10 ? 1 : lv.level <= 15 ? 2 : 3;
+  showMapView(chIdx);
 }
 
 function showMapView(chIdx) {
@@ -2015,8 +2046,9 @@ function showMapView(chIdx) {
     node.style.top = pos.y + 'px';
     node.style.transform = 'translate(-50%, -50%)';
 
+    const circleClasses = `node-circle ${unlocked ? '' : 'locked'} ${stars > 0 ? 'completed cat-ear' : ''}`;
     node.innerHTML = `
-      <div class="node-circle ${unlocked ? '' : 'locked'} ${stars > 0 ? 'completed' : ''}">
+      <div class="${circleClasses}">
         <span class="node-num">${lv.level}</span>
         <div class="node-stars">
           ${[1,2,3].map(s => `<span class="${s <= stars ? 's-on' : 's-off'}">★</span>`).join('')}
@@ -2036,12 +2068,41 @@ function showMapView(chIdx) {
     mapContent.appendChild(node);
   });
 
+  // ---- 添加猫爪印装饰沿路径 ----
+  for (let i = 1; i < positions.length; i++) {
+    if (i % 2 === 1) { // 在奇数间隔处放爪印
+      const prev = positions[i - 1];
+      const curr = positions[i];
+      const pawY = (prev.y + curr.y) / 2;
+      const paw = document.createElement('div');
+      paw.className = 'paw-print';
+      paw.textContent = '🐾';
+      paw.style.left = '50%';
+      paw.style.top = pawY + 'px';
+      paw.style.transform = 'translateX(-50%)';
+      paw.style.animationDelay = (i * 0.3) + 's';
+      mapContent.appendChild(paw);
+    }
+  }
+
+  // ---- 猫猫在起点欢迎 ----
+  const welcomeCat = document.createElement('div');
+  welcomeCat.className = 'paw-print';
+  welcomeCat.textContent = '🐱';
+  welcomeCat.style.left = positions[0].x + '%';
+  welcomeCat.style.top = (positions[0].y - 55) + 'px';
+  welcomeCat.style.transform = 'translate(-50%, 0)';
+  welcomeCat.style.fontSize = '1.6rem';
+  welcomeCat.style.opacity = '0.6';
+  welcomeCat.style.animation = 'catBounce 2s ease-in-out infinite';
+  mapContent.appendChild(welcomeCat);
+
   // ---- 添加篇章分隔条 ----
   for (let c = 1; c < CHAPTERS.length; c++) {
     const dividerY = c * 5 * NODE_SPACING + 45;
     const div = document.createElement('div');
     div.className = `chapter-divider d${c}`;
-    div.textContent = `── ${CHAPTERS[c].name} · ${CHAPTERS[c].subtitle} ──`;
+    div.textContent = `😸 ${CHAPTERS[c].name} · ${CHAPTERS[c].subtitle}`;
     div.style.top = dividerY + 'px';
     mapContent.appendChild(div);
   }
@@ -2084,27 +2145,6 @@ function startLevel() {
   }
 }
 
-function initGame() {
-  const saved = localStorage.getItem('xiaoxiaole_progress');
-  if (saved) {
-    try {
-      const data = JSON.parse(saved);
-      if (data.levelStars && Array.isArray(data.levelStars)) {
-        levelStars = data.levelStars;
-      } else if (data.totalStars !== undefined) {
-        // 迁移旧数据
-        const oldTotal = data.totalStars || 0;
-        const oldLevel = data.level || 0;
-        for (let i = 0; i <= oldLevel && i < 20; i++) {
-          levelStars[i] = Math.min(3, Math.max(1, Math.floor(oldTotal / (oldLevel + 1))));
-        }
-      }
-    } catch(e) { /* ignore */ }
-  }
-  showScreen('chapter');
-  renderChapterScreen();
-}
-
 function saveProgress() {
   localStorage.setItem('xiaoxiaole_progress', JSON.stringify({
     levelStars: levelStars,
@@ -2114,20 +2154,13 @@ function saveProgress() {
 function goToLevelSelect() {
   const lv = LEVELS[currentLevel] || LEVELS[0];
   const chIdx = lv.level <= 5 ? 0 : lv.level <= 10 ? 1 : lv.level <= 15 ? 2 : 3;
-  renderChapterScreen();
   showMapView(chIdx);
-}
-
-function goToChapterSelect() {
-  renderChapterScreen();
-  showScreen('chapter');
 }
 
 // ---- 按钮事件 ----
 document.getElementById('btnHint').addEventListener('click', showHint);
 document.getElementById('btnRestart').addEventListener('click', () => startLevel());
 document.getElementById('btnBackToLevels').addEventListener('click', () => goToLevelSelect());
-document.getElementById('btnBackToChapter').addEventListener('click', () => goToChapterSelect());
 
 // ---- 键盘操作 ----
 document.addEventListener('keydown', (e) => {
