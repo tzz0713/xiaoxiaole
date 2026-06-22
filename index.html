@@ -1508,8 +1508,7 @@ function renderBoard(newCells = [], matchedCells = []) {
   }
 }
 
-const STAR_PCTS = [0.40, 0.70, 1.00]; // 一星/二星/三星所需百分比
-
+const STAR_PCTS = [0.40, 0.70, 1.00];
 function updateUI() {
   const lv = LEVELS[currentLevel];
   scoreEl.textContent = score.toLocaleString();
@@ -1522,10 +1521,13 @@ function updateUI() {
   progressFill.style.width = pct + '%';
 
   // 星级标记点亮
-  const starLabels = progressStars.querySelectorAll('.star-label');
-  const starThresholds = STAR_PCTS.map(p => Math.round(lv.target * p));
-  for (let i = 0; i < 3; i++) {
-    starLabels[i].className = 'star-label' + (score >= starThresholds[i] ? ' reached' : '');
+  const pcts = (typeof STAR_PCTS !== 'undefined') ? STAR_PCTS : [0.40, 0.70, 1.00];
+  const starThresholds = pcts.map(p => Math.round(lv.target * p));
+  if (progressStars) {
+    const starLabels = progressStars.querySelectorAll('.star-label');
+    for (let i = 0; i < Math.min(starLabels.length, 3); i++) {
+      starLabels[i].className = 'star-label' + (score >= starThresholds[i] ? ' reached' : '');
+    }
   }
 
   // 分数标注
@@ -1674,13 +1676,14 @@ async function processCascade() {
 
 function checkEndCondition() {
   const lv = LEVELS[currentLevel];
-  const star1Score = Math.round(lv.target * STAR_PCTS[0]);
+  const pcts = (typeof STAR_PCTS !== 'undefined') ? STAR_PCTS : [0.40, 0.70, 1.00];
+  const star1Score = Math.round(lv.target * pcts[0]);
 
   // 只要达到一星门槛即可通关
   if (score >= star1Score) {
     let earnedStars;
     if (score >= lv.target) earnedStars = 3;
-    else if (score >= lv.target * STAR_PCTS[1]) earnedStars = 2;
+    else if (score >= lv.target * pcts[1]) earnedStars = 2;
     else earnedStars = 1;
     // 保留最高星级
     if (earnedStars > levelStars[currentLevel]) {
