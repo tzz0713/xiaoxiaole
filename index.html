@@ -1686,22 +1686,27 @@ function checkEndCondition() {
   const pcts = (typeof STAR_PCTS !== 'undefined') ? STAR_PCTS : [0.40, 0.70, 1.00];
   const star1Score = Math.round(lv.target * pcts[0]);
 
-  // 只要达到一星门槛即可通关
-  if (score >= star1Score) {
-    let earnedStars;
-    if (score >= lv.target) earnedStars = 3;
-    else if (score >= lv.target * pcts[1]) earnedStars = 2;
-    else earnedStars = 1;
-    // 保留最高星级
-    if (earnedStars > levelStars[currentLevel]) {
-      levelStars[currentLevel] = earnedStars;
-    }
+  // 三星才立即通关，有步数时一星/二星不结束
+  if (score >= lv.target) {
+    // 三星通关
+    if (3 > levelStars[currentLevel]) levelStars[currentLevel] = 3;
     saveProgress();
-    showVictoryModal(earnedStars);
+    showVictoryModal(3);
     return;
   }
   if (movesLeft <= 0) {
-    showDefeatModal();
+    // 步数用完 → 按实际星级结算
+    if (score >= star1Score) {
+      let earnedStars;
+      if (score >= lv.target) earnedStars = 3;
+      else if (score >= lv.target * pcts[1]) earnedStars = 2;
+      else earnedStars = 1;
+      if (earnedStars > levelStars[currentLevel]) levelStars[currentLevel] = earnedStars;
+      saveProgress();
+      showVictoryModal(earnedStars);
+    } else {
+      showDefeatModal();
+    }
     return;
   }
   if (findValidMoves().length === 0) {
