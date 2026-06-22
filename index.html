@@ -2830,17 +2830,25 @@ shakeStyle.textContent = `
 document.head.appendChild(shakeStyle);
 
 // ==================== 启动 ====================
-try {
-  document.getElementById('startBtn').addEventListener('click', startGame);
-  initCover();
+(function() {
+  var _startBtn = document.getElementById('startBtn');
+  var _coverScreen = document.getElementById('coverScreen');
+  var _loadingScreen = document.getElementById('loadingScreen');
+  // 检查必要元素是否存在
+  if (!_startBtn || !_coverScreen) {
+    // DOM不完整，跳过封面直接进入游戏
+    try { showMapView(0); } catch(e) {}
+    return;
+  }
+  _startBtn.addEventListener('click', startGame);
+  try { initCover(); } catch(e) {
+    console.error('封面初始化失败:', e);
+    _coverScreen.style.display = 'none';
+    if (_loadingScreen) _loadingScreen.style.display = 'none';
+    try { showMapView(0); } catch(e2) {}
+  }
   console.log('✨ 超级消除已就绪！');
-} catch(e) {
-  console.error('启动错误:', e);
-  // 容错：如果封面加载失败，直接进入游戏
-  document.getElementById('coverScreen').style.display = 'none';
-  document.getElementById('loadingScreen').style.display = 'none';
-  try { showMapView(0); } catch(e2) { console.error(e2); }
-}
+})();
 console.log('  点击选中宝石 → 点击相邻宝石交换');
 console.log('  键盘方向键可移动选中 → ESC取消选中');
 console.log('  也可用鼠标/触屏滑动交换');
