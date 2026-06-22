@@ -121,8 +121,8 @@
   .progress-bar-bg {
     background: var(--panel);
     border-radius: 10px;
-    height: 10px;
-    overflow: hidden;
+    height: 16px;
+    overflow: visible;
     border: 1px solid rgba(255,255,255,0.08);
     position: relative;
   }
@@ -141,14 +141,43 @@
     background: rgba(255,255,255,0.4);
     border-radius: 50%;
   }
+  .progress-marker {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(255,255,255,0.5);
+    z-index: 2;
+    pointer-events: none;
+  }
+  .progress-marker::after {
+    content: '▼';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.5rem;
+    color: rgba(255,255,255,0.4);
+  }
   .progress-stars {
     display: flex;
     justify-content: space-between;
     padding: 1px 2px;
-    font-size: 0.65rem;
-    color: rgba(255,255,255,0.35);
+    margin-top: 2px;
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.3);
   }
-  .progress-stars span.reached { color: var(--gold); }
+  .progress-stars .star-label { white-space: nowrap; }
+  .progress-stars .star-label.reached { color: var(--gold); font-weight: 700; }
+  .progress-scores {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 2px;
+    margin-top: 1px;
+    font-size: 0.55rem;
+    color: rgba(255,255,255,0.2);
+  }
+  .progress-scores .score-label { white-space: nowrap; }
 
   /* ---- 游戏面板 ---- */
   .board {
@@ -696,7 +725,25 @@
     50% { transform: translateY(-4px) scale(1.1); opacity: 0.5; }
   }
 
-  /* ---- 关卡节点 ---- */
+  /* ---- 地图总星数 ---- */
+.map-total-stars {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 10;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--gold);
+  border: 1px solid rgba(255,255,255,0.08);
+  pointer-events: none;
+  letter-spacing: 0.5px;
+}
+/* ---- 关卡节点 ---- */
   .level-node {
     position: absolute;
     z-index: 3;
@@ -886,10 +933,14 @@
     .board { padding: 6px; border-radius: 12px; }
     .cell { border-radius: 8px; font-size: 1.15rem; }
     .game-wrapper { gap: 22px; padding: 12px; }
-    .select-screen { gap: 20px; padding: 8px; }
-    .chapter-list { gap: 12px; }
+    .progress-stars .star-label { font-size: 0.5rem; }
+    .progress-scores .score-label { font-size: 0.45rem; }
+    .map-total-stars { font-size: 0.55rem; padding: 2px 6px; top: 4px; right: 4px; }
     .chapter-card { padding: 16px 18px; }
     .chapter-card .ch-name { font-size: 1.05rem; }
+    .progress-stars .star-label { font-size: 0.55rem; }
+    .progress-scores .score-label { font-size: 0.5rem; }
+    .map-total-stars { font-size: 0.6rem; padding: 3px 8px; top: 4px; right: 6px; }
     .info-panel { gap: 10px; }
     .info-item { padding: 8px 12px; min-width: 56px; }
     .info-item .value { font-size: 1.1rem; }
@@ -933,6 +984,7 @@
   <div class="map-screen" id="levelScreen">
     <div class="map-body" id="mapBody">
       <div class="map-bg-season"></div>
+      <div class="map-total-stars" id="totalStarsBadge">⭐ 0/120</div>
       <div class="scenery">
         <div class="rainbow"></div>
         <div class="cloud c1"></div>
@@ -995,10 +1047,14 @@
     <div class="progress-wrap">
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+        <div class="progress-marker" id="marker1" style="left:40%"></div>
+        <div class="progress-marker" id="marker2" style="left:70%"></div>
+        <div class="progress-marker" id="marker3" style="left:100%"></div>
       </div>
       <div class="progress-stars" id="progressStars">
-        <span>★</span><span>★</span><span>★</span>
+        <span>★ 一星</span><span>★★ 二星</span><span>★★★ 三星</span>
       </div>
+      <div class="progress-scores" id="progressScores"></div>
     </div>
 
     <div class="board-container">
@@ -1452,22 +1508,34 @@ function renderBoard(newCells = [], matchedCells = []) {
   }
 }
 
+const STAR_PCTS = [0.40, 0.70, 1.00]; // 一星/二星/三星所需百分比
+
 function updateUI() {
   const lv = LEVELS[currentLevel];
   scoreEl.textContent = score.toLocaleString();
   targetEl.textContent = lv.target.toLocaleString();
   comboEl.textContent = 'x' + comboCount;
   movesEl.textContent = movesLeft;
+
+  // 进度条：以三星（100%）为基准
   const pct = Math.min(100, Math.round((score / lv.target) * 100));
   progressFill.style.width = pct + '%';
 
-  const star1 = lv.target * 0.5;
-  const star2 = lv.target * 0.85;
-  const star3 = lv.target;
-  const stars = progressStars.querySelectorAll('span');
-  stars[0].className = score >= star1 ? 'reached' : '';
-  stars[1].className = score >= star2 ? 'reached' : '';
-  stars[2].className = score >= star3 ? 'reached' : '';
+  // 星级标记点亮
+  const starLabels = progressStars.querySelectorAll('.star-label');
+  const starThresholds = STAR_PCTS.map(p => Math.round(lv.target * p));
+  for (let i = 0; i < 3; i++) {
+    starLabels[i].className = 'star-label' + (score >= starThresholds[i] ? ' reached' : '');
+  }
+
+  // 分数标注
+  const scoresEl = document.getElementById('progressScores');
+  if (scoresEl) {
+    const s1 = starThresholds[0].toLocaleString();
+    const s2 = starThresholds[1].toLocaleString();
+    const s3 = starThresholds[2].toLocaleString();
+    scoresEl.innerHTML = `<span class="score-label">${s1}</span><span class="score-label">${s2}</span><span class="score-label">${s3}</span>`;
+  }
 
   levelBadge.textContent = `第 ${lv.level}/${LEVELS.length} 关 · ${lv.name}`;
   const chIdx = lv.level <= 5 ? 0 : lv.level <= 10 ? 1 : lv.level <= 15 ? 2 : 3;
@@ -1606,10 +1674,13 @@ async function processCascade() {
 
 function checkEndCondition() {
   const lv = LEVELS[currentLevel];
-  if (score >= lv.target) {
+  const star1Score = Math.round(lv.target * STAR_PCTS[0]);
+
+  // 只要达到一星门槛即可通关
+  if (score >= star1Score) {
     let earnedStars;
     if (score >= lv.target) earnedStars = 3;
-    else if (score >= lv.target * 0.85) earnedStars = 2;
+    else if (score >= lv.target * STAR_PCTS[1]) earnedStars = 2;
     else earnedStars = 1;
     // 保留最高星级
     if (earnedStars > levelStars[currentLevel]) {
@@ -2050,6 +2121,11 @@ function showMapView(chIdx) {
   svg.setAttribute('viewBox', `0 0 ${svgW} ${MAP_HEIGHT}`);
   svg.setAttribute('preserveAspectRatio', 'none');
   svg.classList.add('map-svg');
+
+  // 更新总星数
+  const totalStars = levelStars.reduce((a, b) => a + b, 0);
+  const badge = document.getElementById('totalStarsBadge');
+  if (badge) badge.textContent = `⭐ ${totalStars}/120`;
 
   // 立即显示界面，再开始渲染内容
   showScreen('level');
